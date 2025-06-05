@@ -1,0 +1,178 @@
+@startuml banco
+
+' skinparam linetype ortho
+hide circle
+
+
+!$renderMeta = 1
+
+!procedure $meta()
+  !if $renderMeta
+    * id: text
+    ' * created_at: datetime
+    ' * updated_at: datetime
+  !else
+  !endif
+!endprocedure
+
+entity "Tribunais" as courts {
+  $meta()
+  --
+  nome: text
+  abreviação: text
+  comarca text
+  tipo: text
+}
+
+entity "Varas" as judging_units {
+  $meta()
+  * court_id: text
+  --
+  * nome text
+  * endereço text
+}
+
+entity "Processo" as lawsuits {
+  $meta()
+  --
+  cnj: text
+  status: text
+}
+
+entity "Movimentação" as movements {
+  $meta()
+  * lawsuit_id: text (fk lawsuits)
+  --
+  * tipo: text
+  * titulo: text
+  descricao: text
+}
+
+entity "Evento" as events {
+  $meta()
+  * lawsuit_id: text (fk lawsuits)
+  --
+  tipo: text ("Audiência" | "Perícia")
+  titulo: text
+  descricao: text
+  data: datetime
+}
+
+entity "Parte" as parties {
+  $meta()
+  * lawsuit_id: text (fk lawsuits)
+  * parte_id: text (fk individual | legalEntity)
+  * tipo: ("Pessoa física" | "Pessoa Jurídica")
+  --
+  type: part_type 
+}
+
+enum "Tipo de Parte" as part_type {
+  autor: author
+  réu: defendant
+}
+
+entity "Testemunha" as witnesses {
+  $meta()
+  * part_id: text
+  * individual_id: text
+  ' lawsuit_id: text
+  --
+}
+
+entity "Cliente" as clients {
+  $meta()
+  --
+  parte_id: text (fk individual | legalEntity)
+  tipo: ("Pessoa física" | "Pessoa Jurídica")
+  ' origem: text
+  ' indicação: boolean
+}
+
+entity "Pessoa física" as individuals {
+  $meta()
+  --
+  nome: text
+  cpf: text
+  dataNascimento: datetime
+  ' genero: text
+  ' nacionalidade: text
+  ' estadoCivil: text
+  ' profissao: text
+  ' endereco: text
+  ' telefone: text
+  ' email: text
+}
+
+entity "Pessoa Jurídica" as legalEntities {
+  $meta()
+  --
+  razaoSocial: text
+  cnpj: text
+  ' inscricaoEstadual: text
+  ' endereco: text
+  ' telefone: text
+  ' email: text
+}
+
+' TODO: maybe merge the documents?
+entity "Documento do Cliente" as client_documents {
+  $meta()
+  * client_id: text
+  --
+  tipo: text
+  data: datetime
+  descricao: text
+  file_url: text
+}
+
+entity "Documento do Processo" as lawsuit_documents {
+  $meta()
+  * lawsuit_id: text
+  movementation_id: text
+  --
+  tipo: text
+  data: datetime
+  descricao: text
+  file_url: text
+}
+
+client_documents  }o--|| clients
+lawsuit_documents }o--|| lawsuits
+lawsuit_documents }o--o| movements
+
+courts ||--o{ judging_units
+judging_units ||--o{ lawsuits
+
+' witnesses -- individuals
+' witnesses -- parties
+' witnesses -- lawsuits
+
+movements }o--|| lawsuits
+
+events }o--|| lawsuits
+
+clients .. individuals
+clients .. legalEntities
+
+parties .. individuals
+parties .. legalEntities
+
+parties -- part_type
+
+parties }o--|| lawsuits
+
+witnesses }o--|| parties
+' witnesses }o--|| lawsuits
+witnesses }o--|| individuals
+
+
+' parties -- part_lawsuit
+' lawsuits --{ part_lawsuit
+
+
+
+' parties ||--|| individuals
+' parties ||--|| legalEntities
+
+@enduml

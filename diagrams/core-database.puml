@@ -64,7 +64,7 @@ entity "Parte" as parties {
   * parte_id: text (fk individual | legalEntity)
   * tipo: ("Pessoa física" | "Pessoa Jurídica")
   --
-  type: part_type 
+  papel: part_type 
 }
 
 enum "Tipo de Parte" as part_type {

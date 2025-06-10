@@ -10,5 +10,21 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
 
+
+  metabase:
+    image: metabase/metabase:latest
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_HOST: db
+      MB_DB_PORT: 5432
+      MB_DB_USER: user
+      MB_DB_PASS: password
+      MB_DB_DBNAME: mydatabase
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    restart: always
+
 volumes:
   db_data:

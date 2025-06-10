@@ -7,4 +7,5 @@ export const env = cleanEnv(process.env, {
     default: "development",
   }),
   DB_URL: url(),
+  JUDICE_DB_URL: url(),
 })

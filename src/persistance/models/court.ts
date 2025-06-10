@@ -8,3 +8,5 @@ export const court = pgTable("courts", {
   district: text(),
   type: text(),
 })
+
+type Court = typeof court.$inferSelect

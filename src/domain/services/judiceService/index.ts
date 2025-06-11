@@ -12,4 +12,18 @@ export class JudiceService {
       with: {},
     })
   }
+
+  async getLawsuitById(id: number) {
+    return await this.db.query.process.findFirst({
+      where: (process, { eq }) => eq(process.fId, id),
+      with: {},
+    })
+  }
+
+  async getLawsuitByNumber(number: string) {
+    return await this.db.query.process.findFirst({
+      where: (process, { eq }) => eq(process.fCnjNumber, number),
+      with: {},
+    })
+  }
 }

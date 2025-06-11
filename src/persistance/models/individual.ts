@@ -6,7 +6,7 @@ export const individual = pgTable("individuals", {
   ...baseTable,
   name: text().notNull(),
   cpf: text().notNull(),
-  birthDate: timestamp().notNull(),
+  birthDate: timestamp(),
   gender: genderType(),
   // nacionalidade: text(),
   // estadoCivil: text(),

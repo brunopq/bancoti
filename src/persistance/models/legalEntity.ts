@@ -3,8 +3,8 @@ import { baseTable } from "./baseTable.ts"
 
 export const legalEntity = pgTable("legal_entities", {
   ...baseTable,
-  corporateName: text(),
-  cnpj: text(),
+  corporateName: text().notNull(),
+  cnpj: text().notNull(),
   // stateRegistration: text(), // inscricaoEstadual
   // address: text(), // endereco
   // phone: text(), // telefone

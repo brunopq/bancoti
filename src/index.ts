@@ -11,6 +11,7 @@ import { db } from "./persistance/db.ts"
 
 import { judiceController } from "./application/controllers/judiceController.ts"
 import { clientController } from "./application/controllers/clientController.ts"
+import { lawsuitController } from "./application/controllers/lawsuitController.ts"
 
 const app = new Hono()
 app.use(logger())
@@ -50,6 +51,7 @@ app.get(
 
 app.route("/judice", judiceController)
 app.route("/clients", clientController)
+app.route("/lawsuits", lawsuitController)
 
 showRoutes(app, { colorize: true })
 serve({ fetch: app.fetch, port: 3000 }, (info) => {

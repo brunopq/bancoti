@@ -1,5 +1,7 @@
 import { pgEnum } from "drizzle-orm/pg-core"
 
+import { lawsuitAreas } from "../../domain/entities/lawsuit.ts"
+
 export const partRole = pgEnum("part_role", ["author", "defendant"])
 export const entityType = pgEnum("part_type", ["individual", "legal_entity"])
 export const genderType = pgEnum("gender_type", ["male", "female", "other"])
@@ -10,13 +12,7 @@ export const lawsuitStatus = pgEnum("lawsuit_status", [
   "archived",
   "cancelled",
 ])
-export const lawsuitArea = pgEnum("lawsuit_area", [
-  "civil",
-  "criminal",
-  "administrative",
-  "labor",
-  "tax",
-])
+export const lawsuitArea = pgEnum("lawsuit_area", lawsuitAreas)
 
 export type PartyRole = (typeof partRole.enumValues)[number]
 export type EntityType = (typeof entityType.enumValues)[number]

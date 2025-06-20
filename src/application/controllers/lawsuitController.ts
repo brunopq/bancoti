@@ -21,7 +21,7 @@ const lawsuitService = container.get(LawsuitService)
 
 const listLawsuitFilters = {
   clientId: z.string().optional(),
-  clientRole: PartyRoleSchema,
+  clientRole: PartyRoleSchema.optional(),
 }
 
 lawsuitController.get(
@@ -88,7 +88,7 @@ lawsuitController.get(
   async (c) => {
     const { id } = c.req.valid("param")
 
-    const res = lawsuitService.getById(id)
+    const res = await lawsuitService.getById(id)
 
     return c.json(res)
   },

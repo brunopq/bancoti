@@ -4,12 +4,13 @@ import { lawsuit } from "../models/lawsuit.ts"
 import type { IBaseRepository } from "./IBaseRepository.ts"
 import type { db as database } from "../db.ts"
 
-import type { LawsuitWithMovements } from "../../domain/entities/lawsuit.ts"
+import type { LawsuitWith } from "../../domain/entities/lawsuit.ts"
 import type { PartyRole } from "../models/enums.ts"
 import { client } from "../models/client.ts"
 import { party } from "../models/party.ts"
 
 type Lawsuit = typeof lawsuit.$inferSelect
+type InsertLawsuit = typeof lawsuit.$inferInsert
 
 type LawsuitSearchFilters = {
   clientId?: string
@@ -17,10 +18,12 @@ type LawsuitSearchFilters = {
 }
 
 @injectable()
-export class LawsuitRepository implements IBaseRepository<Lawsuit> {
+export class LawsuitRepository
+  implements IBaseRepository<Lawsuit, InsertLawsuit>
+{
   constructor(@inject("db") private db: typeof database) {}
 
-  async findById(id: string): Promise<LawsuitWithMovements | null> {
+  async findById(id: string): Promise<LawsuitWith<"movements"> | null> {
     const lawsuit = await this.db.query.lawsuit.findFirst({
       where: (l, { eq }) => eq(l.id, id),
       with: { movements: true },
@@ -49,7 +52,7 @@ export class LawsuitRepository implements IBaseRepository<Lawsuit> {
     return a.map((aa) => aa.lawsuits).filter((aa) => aa !== null)
   }
 
-  async findByCnj(cnj: string): Promise<LawsuitWithMovements | null> {
+  async findByCnj(cnj: string): Promise<LawsuitWith<"movements"> | null> {
     const lawsuit = await this.db.query.lawsuit.findFirst({
       where: (l, { eq }) => eq(l.cnj, cnj),
       with: { movements: true },
@@ -58,11 +61,11 @@ export class LawsuitRepository implements IBaseRepository<Lawsuit> {
     return lawsuit || null
   }
 
-  async create(item: Lawsuit): Promise<Lawsuit> {
+  async create(item: InsertLawsuit): Promise<Lawsuit> {
     const [created] = await this.db.insert(lawsuit).values(item).returning()
     return created
   }
-  async update(id: string, item: Lawsuit): Promise<Lawsuit | null> {
+  async update(id: string, item: InsertLawsuit): Promise<Lawsuit | null> {
     const [updated] = await this.db
       .update(lawsuit)
       .set(item)

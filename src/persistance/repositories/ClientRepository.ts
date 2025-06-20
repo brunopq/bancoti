@@ -3,21 +3,23 @@ import { and, eq } from "drizzle-orm"
 
 import { client } from "../models/client.ts"
 import type { db as database } from "../db.ts"
-import type {
-  Client,
-  Individual,
-  Company,
-} from "../../domain/entities/client.ts"
 import type { IBaseRepository } from "./IBaseRepository.ts"
-import { clientMapper } from "../mappers/client.mapper.ts"
 import { individual } from "../models/individual.ts"
 import { legalEntity } from "../models/legalEntity.ts"
 
+type Client = typeof client.$inferSelect
+type NewClient = typeof client.$inferInsert
+
+type Individual = typeof individual.$inferSelect
+type Company = typeof legalEntity.$inferSelect
+
+type FullClient = (Client & Individual) | (Client & Company)
+
 @injectable()
-export class ClientRepository implements IBaseRepository<Client> {
+export class ClientRepository implements IBaseRepository<Client, NewClient> {
   constructor(@inject("db") private db: typeof database) {}
 
-  async findById(id: string): Promise<Client | null> {
+  async findById(id: string): Promise<FullClient | null> {
     const [clientData] = await this.db
       .select()
       .from(client)
@@ -25,7 +27,7 @@ export class ClientRepository implements IBaseRepository<Client> {
 
     if (!clientData) return null
 
-    let domainClient: Client | null = null
+    let domainClient: FullClient | null = null
 
     if (clientData.type === "individual") {
       const [individualData] = await this.db
@@ -35,10 +37,7 @@ export class ClientRepository implements IBaseRepository<Client> {
 
       if (!individualData) return null
 
-      domainClient = clientMapper.toDomain({
-        client: clientData,
-        individual: individualData,
-      })
+      domainClient = { ...clientData, ...individualData }
     } else if (clientData.type === "legal_entity") {
       const [legalEntityData] = await this.db
         .select()
@@ -47,10 +46,7 @@ export class ClientRepository implements IBaseRepository<Client> {
 
       if (!legalEntityData) return null
 
-      domainClient = clientMapper.toDomain({
-        client: clientData,
-        legalEntity: legalEntityData,
-      })
+      domainClient = { ...clientData, ...legalEntityData }
     } else {
       throw new Error(`Unknown client type: ${clientData.type}`)
     }
@@ -67,10 +63,7 @@ export class ClientRepository implements IBaseRepository<Client> {
 
     if (!individuals) return null
 
-    return clientMapper.toDomain({
-      client: clients,
-      individual: individuals,
-    }) as Individual // this is safe (I hope)
+    return { ...clients, ...individuals }
   }
 
   async findByCNPJ(cnpj: string): Promise<Company | null> {
@@ -82,10 +75,7 @@ export class ClientRepository implements IBaseRepository<Client> {
 
     if (!legal_entities) return null
 
-    return clientMapper.toDomain({
-      client: clients,
-      legalEntity: legal_entities,
-    }) as Company // this is safe (I hope)
+    return { ...clients, ...legal_entities }
   }
 
   async findAll(): Promise<Client[]> {
@@ -93,10 +83,10 @@ export class ClientRepository implements IBaseRepository<Client> {
     // return this.db.select().from(client)
   }
 
-  async create(item: Client): Promise<Client> {
-    throw new Error("Method not implemented.")
-    // const [created] = await this.db.insert(client).values(item).returning()
-    // return created
+  async create(item: NewClient): Promise<Client> {
+    const [created] = await this.db.insert(client).values(item).returning()
+
+    return created
   }
 
   async update(id: string, item: Client): Promise<Client | null> {

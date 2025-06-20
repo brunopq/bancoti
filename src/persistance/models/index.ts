@@ -1,7 +1,6 @@
 export * from "./enums.ts"
 export * from "./lawsuit.ts"
 export * from "./court.ts"
-export * from "./judgingUnit.ts"
 export * from "./movement.ts"
 export * from "./event.ts"
 export * from "./witness.ts"

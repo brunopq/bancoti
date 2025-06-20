@@ -1,8 +1,9 @@
-export interface IBaseRepository<T> {
-  findById(id: string): Promise<T | null>
-  findAll(): Promise<T[]>
-  create(item: T): Promise<T>
-  update(id: string, item: T): Promise<T | null>
+
+export interface IBaseRepository<R, W = R> {
+  findById(id: string): Promise<R | null>
+  findAll(): Promise<R[]>
+  create(item: W): Promise<R>
+  update(id: string, item: W): Promise<R | null>
   delete(id: string): Promise<void>
   count(): Promise<number>
   exists(id: string): Promise<boolean>

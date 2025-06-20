@@ -5,9 +5,10 @@ import type { IBaseRepository } from "./IBaseRepository.ts"
 import type { db as database } from "../db.ts"
 
 type Party = typeof party.$inferSelect
+type InsertParty = typeof party.$inferInsert
 
 @injectable()
-export class PartyRepository implements IBaseRepository<Party> {
+export class PartyRepository implements IBaseRepository<Party, InsertParty> {
   constructor(@inject("db") private db: typeof database) {}
 
   async findById(id: string): Promise<Party | null> {
@@ -17,11 +18,11 @@ export class PartyRepository implements IBaseRepository<Party> {
   async findAll(): Promise<Party[]> {
     return this.db.select().from(party)
   }
-  async create(item: Party): Promise<Party> {
+  async create(item: InsertParty): Promise<Party> {
     const [created] = await this.db.insert(party).values(item).returning()
     return created
   }
-  async update(id: string, item: Party): Promise<Party | null> {
+  async update(id: string, item: InsertParty): Promise<Party | null> {
     const [updated] = await this.db
       .update(party)
       .set(item)

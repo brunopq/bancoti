@@ -7,12 +7,10 @@ const nanoid = customAlphabet(
   idLength,
 )
 
-export const id = () => char()
+export const id = () => char({ length: idLength })
 
 export const baseTable = {
-  id: id()
-    .$defaultFn(() => `proc_${nanoid()}`)
-    .primaryKey(),
+  id: id().$defaultFn(nanoid).primaryKey(),
   createdAt: timestamp({ mode: "date", withTimezone: true })
     .notNull()
     .defaultNow(),

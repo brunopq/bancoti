@@ -28,6 +28,13 @@ export const ClientSchema = z.discriminatedUnion("type", [
   CompanySchema,
 ])
 
+export const NewClientSchema = z.discriminatedUnion("type", [
+  IndividualSchema.omit({ id: true }),
+  CompanySchema.omit({ id: true }),
+])
+
 export type Client = z.infer<typeof ClientSchema>
 export type Individual = z.infer<typeof IndividualSchema>
 export type Company = z.infer<typeof CompanySchema>
+
+export type NewClient = z.infer<typeof NewClientSchema>

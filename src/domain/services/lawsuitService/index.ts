@@ -7,7 +7,7 @@ import {
 
 import { LawsuitRepository } from "../../../persistance/repositories/LawsuitRepository.ts"
 
-import type { Lawsuit, LawsuitWithMovements } from "../../entities/lawsuit.ts"
+import type { Lawsuit, LawsuitWith } from "../../entities/lawsuit.ts"
 import type { PartyRole } from "../../entities/party.ts"
 
 type LawsuitFilters = {
@@ -32,7 +32,8 @@ export class LawsuitService {
     return this.lawsuitRepository.findAll(filters)
   }
 
-  async getById(id: string): Promise<Lawsuit | LawsuitWithMovements> {
+  async getById(id: string): Promise<Lawsuit | LawsuitWith<"movements">> {
+    console.log("getting by id")
     const lawsuit = await this.lawsuitRepository.findById(id)
 
     if (!lawsuit) {
@@ -42,7 +43,7 @@ export class LawsuitService {
     return lawsuit
   }
 
-  async getByCnj(cnj: string): Promise<Lawsuit | LawsuitWithMovements> {
+  async getByCnj(cnj: string): Promise<Lawsuit | LawsuitWith<"movements">> {
     const lawsuit = await this.lawsuitRepository.findByCnj(cnj)
 
     if (!lawsuit) {

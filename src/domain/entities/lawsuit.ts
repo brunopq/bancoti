@@ -1,4 +1,5 @@
 import type { Movement } from "./movement.ts"
+import type { Court } from "./court.ts"
 
 export const lawsuitAreas = [
   "civil",
@@ -17,8 +18,13 @@ export type Lawsuit = {
   cnj: string
   status: string
   area: LawsuitArea
+  courtId: string
 }
 
-export type LawsuitWithMovements = Lawsuit & {
+type LawsuitRelations = {
   movements: Movement[]
+  court: Court
 }
+
+export type LawsuitWith<T extends keyof LawsuitRelations> = Lawsuit &
+  Pick<LawsuitRelations, T>

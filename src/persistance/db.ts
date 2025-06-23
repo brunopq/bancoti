@@ -4,6 +4,8 @@ import { Pool } from "pg"
 
 import { env } from "../utils/env.ts"
 
+import { container } from "../dependencyManager.ts"
+
 import * as models from "./models/index.ts"
 
 const pool = new Pool({
@@ -16,3 +18,5 @@ export const db = drizzle({
 })
 
 await migrate(db, { migrationsFolder: "drizzle" })
+
+container.bind("db").toConstantValue(db)

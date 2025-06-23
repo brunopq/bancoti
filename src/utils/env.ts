@@ -8,4 +8,7 @@ export const env = cleanEnv(process.env, {
   }),
   DB_URL: url(),
   JUDICE_DB_URL: url(),
+  JUDICE_API_URL: url(),
+  JUDICE_API_TOKEN: str(),
+  JUDICE_API_TENANT: str(),
 })

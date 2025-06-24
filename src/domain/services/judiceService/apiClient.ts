@@ -1,5 +1,6 @@
-import { initContract, initClient } from "@ts-rest/core"
+import { initContract, initClient, type ApiFetcherArgs } from "@ts-rest/core"
 import { z } from "zod"
+import JSON5 from "json5"
 
 import { container } from "../../../dependencyManager.ts"
 
@@ -16,13 +17,13 @@ const contract = c.router({
     body: z.object({
       action: z.literal("list"),
       id: z.number().optional(), // used for pagination
-      limit: z.number().max(1000).optional(), // pagination
       cliente: z.array(z.number()).optional(), // filter by client id
       clientview: z.number().min(0).max(1).optional(), // 0 - não, 1 - sim
       area_id: z.number().optional(), // filter by area id
       date_ini: z.string().date().optional(), // filter by start date
       date_fim: z.string().date().optional(), // filter by end date
     }),
+    contentType: "application/x-www-form-urlencoded",
     responses: {
       200: dto.listaAndamentosResponseSchema,
     },
@@ -36,6 +37,7 @@ const contract = c.router({
       id: z.number().optional(), // used for pagination
       limit: z.number().optional(), // pagination
     }),
+    contentType: "application/x-www-form-urlencoded",
     responses: {
       200: dto.listaProcessosResponseSchema,
     },
@@ -48,6 +50,7 @@ const contract = c.router({
       action: z.literal("get"),
       id: z.number(), // the lawsuit id
     }),
+    contentType: "application/x-www-form-urlencoded",
     responses: {
       200: dto.consultaProcessoResponseSchema,
     },
@@ -58,8 +61,9 @@ const contract = c.router({
     path: "/processo",
     body: z.object({
       action: z.literal("listVinculados"),
-      id: z.number(), // the lawsuit id
+      id: z.number().optional(), // this is for pagination
     }),
+    contentType: "application/x-www-form-urlencoded",
     responses: {
       200: dto.listaProcessosVinculadosResponseSchema,
     },
@@ -77,6 +81,7 @@ const contract = c.router({
       comarca_id: z.number().optional(), // filter by comarca id
       situation: z.number().optional(), // filter by situation (1 - ativo, 0 - encerrado)
     }),
+    contentType: "application/x-www-form-urlencoded",
     responses: {
       200: dto.listaTodosProcessosResponseSchema,
     },
@@ -89,6 +94,7 @@ const contract = c.router({
       action: z.literal("list"),
       id: z.number(),
     }),
+    contentType: "application/x-www-form-urlencoded",
     responses: {
       200: dto.listaFasesResponseSchema,
     },
@@ -101,6 +107,7 @@ const contract = c.router({
       action: z.literal("list"),
       id: z.number().optional(), // used for pagination
     }),
+    contentType: "application/x-www-form-urlencoded",
     responses: {
       200: dto.listaTipoDeAcaoResponseSchema,
     },
@@ -113,6 +120,7 @@ const contract = c.router({
       action: z.literal("list"),
       id: z.number().optional(), // used for pagination
     }),
+    contentType: "application/x-www-form-urlencoded",
     responses: {
       200: dto.listaForunsResponseSchema,
     },
@@ -125,6 +133,7 @@ const contract = c.router({
       action: z.literal("list"),
       id: z.number().optional(), // used for pagination
     }),
+    contentType: "application/x-www-form-urlencoded",
     responses: {
       200: dto.listaVarasResponseSchema,
     },
@@ -137,6 +146,7 @@ const contract = c.router({
       action: z.literal("list"),
       id: z.number().optional(), // used for pagination
     }),
+    contentType: "application/x-www-form-urlencoded",
     responses: {
       200: dto.listTribunaisResponseSchema,
     },
@@ -149,6 +159,7 @@ const contract = c.router({
       action: z.literal("list"),
       id: z.number().optional(), // used for pagination
     }),
+    contentType: "application/x-www-form-urlencoded",
     responses: {
       200: dto.listaCidadesResponseSchema,
     },
@@ -161,6 +172,7 @@ const contract = c.router({
       action: z.literal("list"),
       id: z.number().optional(), // used for pagination
     }),
+    contentType: "application/x-www-form-urlencoded",
     responses: {
       200: dto.listaAreasResponseSchema,
     },
@@ -173,6 +185,7 @@ const contract = c.router({
       action: z.literal("list"),
       id: z.number().optional(), // used for pagination
     }),
+    contentType: "application/x-www-form-urlencoded",
     responses: {
       200: dto.listaTiposDeSistemaResponseSchema,
     },
@@ -185,6 +198,7 @@ const contract = c.router({
       action: z.literal("list"),
       id: z.number().optional(), // used for pagination
     }),
+    contentType: "application/x-www-form-urlencoded",
     responses: {
       200: dto.listaClientesResponseSchema,
     },
@@ -197,6 +211,7 @@ const contract = c.router({
       action: z.literal("get"),
       id: z.number(), // the client id
     }),
+    contentType: "application/x-www-form-urlencoded",
     responses: {
       200: dto.consultaClienteResponseSchema,
     },
@@ -209,6 +224,7 @@ const contract = c.router({
       action: z.literal("list"),
       id: z.number().optional(), // used for pagination
     }),
+    contentType: "application/x-www-form-urlencoded",
     responses: {
       200: dto.listaPartesResponseSchema,
     },
@@ -221,6 +237,7 @@ const contract = c.router({
       action: z.literal("list"),
       id: z.number().optional(), // used for pagination
     }),
+    contentType: "application/x-www-form-urlencoded",
     responses: {
       200: dto.listaPosicoesResponseSchema,
     },
@@ -233,6 +250,7 @@ const contract = c.router({
       action: z.literal("list"),
       id: z.number().optional(), // used for pagination
     }),
+    contentType: "application/x-www-form-urlencoded",
     responses: {
       200: dto.listaCartoriosResponseSchema,
     },
@@ -245,6 +263,7 @@ const contract = c.router({
       action: z.literal("list"),
       id: z.number().optional(), // used for pagination
     }),
+    contentType: "application/x-www-form-urlencoded",
     responses: {
       200: dto.listaGruposResponseSchema,
     },
@@ -255,8 +274,9 @@ const contract = c.router({
     path: "/publicacao",
     body: z.object({
       action: z.literal("list"),
-      id: z.number().optional(), // used for pagination
+      data_inclusao: z.string().date(), // filter by inclusion date
     }),
+    contentType: "application/x-www-form-urlencoded",
     responses: {
       200: dto.listaPublicacoesResponseSchema,
     },
@@ -268,6 +288,28 @@ export const apiClient = initClient(contract, {
   baseHeaders: {
     token: env.JUDICE_API_TOKEN,
     tenant: env.JUDICE_API_TENANT,
+  },
+  api: async (args: ApiFetcherArgs) => {
+    // TODO: implement query params
+    const res = await fetch(args.path, {
+      method: args.method,
+      headers: args.headers,
+      body: args.body,
+      ...args.fetchOptions,
+    })
+
+    const status = res.status
+    const headers = new Headers(res.headers)
+
+    const text = await res.text()
+
+    const body = JSON5.parse(text)
+
+    return {
+      status,
+      body,
+      headers,
+    }
   },
 })
 

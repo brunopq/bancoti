@@ -3,7 +3,6 @@ import { z } from "zod"
 const makeResponseSchema = <T extends z.ZodTypeAny>(objectSchema: T) =>
   z.object({
     retorno: z.object({
-      id: z.number(),
       total: z.number(),
       success: z.boolean(),
       message: z.string(),
@@ -11,9 +10,31 @@ const makeResponseSchema = <T extends z.ZodTypeAny>(objectSchema: T) =>
     }),
   })
 
+const wrongResponseSchema = <T extends z.ZodTypeAny>(objectSchema: T) =>
+  z.object({
+    retorno: z.object({
+      object: objectSchema,
+    }),
+    total: z.number(),
+    success: z.boolean(),
+    message: z.string(),
+  })
+
+const wrongWithIntResponseSchema = <T extends z.ZodTypeAny>(objectSchema: T) =>
+  z.object({
+    retorno: z.object({
+      object: objectSchema,
+    }),
+    total: z.number(),
+    success: z.number(),
+    message: z.string(),
+  })
+
+
+
 export const baseResponseSchema = makeResponseSchema(z.any())
 
-export const listaProcessosResponseSchema = makeResponseSchema(
+export const listaProcessosResponseSchema = wrongResponseSchema(
   z.array(
     z.object({
       id: z.number(),
@@ -36,8 +57,8 @@ export const listaProcessosResponseSchema = makeResponseSchema(
         nome: z.string(),
       }),
       forum: z.object({
-        id: z.number(),
-        nome: z.string(),
+        id: z.number().nullable(),
+        nome: z.string().nullable(),
       }),
       cliente: z.object({
         id: z.number(),
@@ -48,8 +69,8 @@ export const listaProcessosResponseSchema = makeResponseSchema(
         }),
       }),
       sistema: z.object({
-        id: z.number(),
-        nome: z.string(),
+        id: z.number().nullable(),
+        nome: z.string().nullable(),
       }),
       unidade: z.object({
         id: z.number(),
@@ -59,113 +80,118 @@ export const listaProcessosResponseSchema = makeResponseSchema(
         id: z.number(),
         nome: z.string(),
       }),
-      partes: z.object({
-        // TODO: check if this is an object or an array
+      partes: z.array(
+        z.object({
+          id: z.number(),
+          nome: z.string(),
+          posicao: z.object({
+            id: z.number(),
+            nome: z.string(),
+          }),
+        }),
+      ),
+    }),
+  ),
+)
+
+export const consultaProcessoResponseSchema = wrongResponseSchema(
+  z.array(
+    z.object({
+      id: z.number(),
+      numero: z.string(),
+      cnj: z.string(),
+      fisicoeletronico: z.string(),
+      pasta_do_cliente: z.string(),
+      situacao: z.number(), // 1 - ativo, 0 - encerrado
+      responsavel: z.object({
+        id: z.number(),
+        nome: z.string(),
+        email: z.string(),
+      }),
+      comarca: z.object({
+        id: z.number(),
+        nome: z.string(),
+        uf: z.string(),
+      }),
+      cartorio: z.object({
+        id: z.number(),
+        nome: z.string(),
+      }),
+      tipo_de_justica: z.object({
+        id: z.number(),
+        nome: z.string(),
+      }),
+      forum: z.object({
+        id: z.number().nullable(),
+        nome: z.string().nullable(),
+      }),
+      cliente: z.object({
         id: z.number(),
         nome: z.string(),
         posicao: z.object({
           id: z.number(),
           nome: z.string(),
+          polo: z.object({
+            id: z.number(),
+            nome: z.string(),
+          }),
         }),
       }),
+      sistema: z.object({
+        id: z.number().nullable(),
+        nome: z.string().nullable(),
+      }),
+      unidade: z.object({
+        id: z.number(),
+        nome: z.string(),
+      }),
+      fase_processual: z.object({
+        id: z.number(),
+        nome: z.string(),
+      }),
+      area: z.object({
+        id: z.number(),
+        nome: z.string(),
+      }),
+      tipo_de_acao: z.object({
+        id: z.number(),
+        nome: z.string(),
+      }),
+      valor: z.object({
+        causa: z.coerce.number().nullable(), // decimal (!!!)
+        interesse: z.coerce.number().nullable(), // decimal (!!!)
+        contingencia: z.coerce.number().nullable(), // decimal (!!!)
+        condenacao: z.coerce.number().nullable(), // decimal (!!!)
+        sentenca: z.coerce.number().nullable(), // decimal (!!!)
+        acordao: z.coerce.number().nullable(), // decimal (!!!)
+      }),
+      partes: z.array(
+        z.object({
+          id: z.number(),
+          nome: z.string(),
+          posicao: z.object({
+            id: z.number(),
+            nome: z.string(),
+            polo: z.object({
+              id: z.number(),
+              nome: z.string(),
+            }),
+          }),
+        }),
+      ),
+      processos_vinculados: z.array(
+        z.object({
+          id: z.number(),
+          numero: z.string(),
+          cnj: z.string(),
+          tipo_de_acao: z.object({
+            id: z.number(),
+            nome: z.string(),
+          }),
+        }),
+      ),
     }),
   ),
-)
-
-export const consultaProcessoResponseSchema = makeResponseSchema(
-  z.object({
-    id: z.number(),
-    numero: z.string(),
-    cnj: z.string(),
-    fisicoeletronico: z.string(),
-    pasta_do_cliente: z.string(),
-    situacao: z.number(), // 1 - ativo, 0 - encerrado
-    responsavel: z.object({
-      id: z.number(),
-      nome: z.string(),
-      email: z.string(),
-    }),
-    comarca: z.object({
-      id: z.number(),
-      nome: z.string(),
-      uf: z.string(),
-    }),
-    cartorio: z.object({
-      id: z.number(),
-      nome: z.string(),
-    }),
-    tipo_de_justica: z.object({
-      id: z.number(),
-      nome: z.string(),
-    }),
-    forum: z.object({
-      id: z.number(),
-      nome: z.string(),
-    }),
-    cliente: z.object({
-      id: z.number(),
-      nome: z.string(),
-      posicao: z.object({
-        id: z.number(),
-        nome: z.string(),
-        polo: z.object({
-          id: z.number(),
-          nome: z.string(),
-        }),
-      }),
-    }),
-    sistema: z.object({
-      id: z.number(),
-      nome: z.string(),
-    }),
-    unidade: z.object({
-      id: z.number(),
-      nome: z.string(),
-    }),
-    fase_processual: z.object({
-      id: z.number(),
-      nome: z.string(),
-    }),
-    area: z.object({
-      id: z.number(),
-      nome: z.string(),
-    }),
-    tipo_de_acao: z.object({
-      id: z.number(),
-      nome: z.string(),
-    }),
-    valor: z.object({
-      causa: z.number(), // decimal (!!!)
-      interesse: z.number(), // decimal (!!!)
-      contingencia: z.number(), // decimal (!!!)
-      condenacao: z.number(), // decimal (!!!)
-      sentenca: z.number(), // decimal (!!!)
-      acordao: z.number(), // decimal (!!!)
-    }),
-    partes: z.object({
-      id: z.number(),
-      nome: z.string(),
-      posicao: z.object({
-        id: z.number(),
-        nome: z.string(),
-        polo: z.object({
-          id: z.number(),
-          nome: z.string(),
-        }),
-      }),
-    }),
-    processos_vinculados: z.array(
-      z.object({
-        id: z.number(),
-        numero: z.string(),
-        cnj: z.string(),
-        tipo_de_acao: z.object({
-          id: z.number(),
-          nome: z.string(),
-        }),
-      }),
-    ),
-  }),
 )
 
 export const listaAndamentosResponseSchema = makeResponseSchema(
@@ -177,12 +203,10 @@ export const listaAndamentosResponseSchema = makeResponseSchema(
       lastupdate: z.string(), // data da última atualização
       numero: z.string(),
       cnj: z.string(),
-      area: z.array(
-        z.object({
-          id: z.number(),
-          nome: z.string(),
-        }),
-      ),
+      area: z.object({
+        id: z.number(),
+        nome: z.string(),
+      }),
       estado: z.string(),
       comarca: z.string(),
       cartorio: z.string(),
@@ -193,8 +217,8 @@ export const listaAndamentosResponseSchema = makeResponseSchema(
       data_cadastramento: z.string(),
       valor_da_causa: z.string(), // não é decimal
       tipo_de_tramite: z.object({
-        id: z.number(),
-        descricao: z.string(),
+        tipo_de_tramite_id: z.number(),
+        tipo_de_tramite_descricao: z.string(),
       }),
       process_id: z.number(),
       cliente: z.array(
@@ -207,14 +231,14 @@ export const listaAndamentosResponseSchema = makeResponseSchema(
         z.object({
           id: z.number(),
           nome: z.string(),
-          cpf: z.string(),
+          cpf: z.string().nullable(),
         }),
       ),
     }),
   ),
 )
 
-export const listaProcessosVinculadosResponseSchema = makeResponseSchema(
+export const listaProcessosVinculadosResponseSchema = wrongResponseSchema(
   z.array(
     z.object({
       id: z.number(),
@@ -233,7 +257,7 @@ export const listaProcessosVinculadosResponseSchema = makeResponseSchema(
   ),
 )
 
-export const listaTodosProcessosResponseSchema = makeResponseSchema(
+export const listaTodosProcessosResponseSchema = wrongResponseSchema(
   z.array(
     z.object({
       id: z.number(),
@@ -252,16 +276,16 @@ export const listaTodosProcessosResponseSchema = makeResponseSchema(
         nome: z.string(),
       }),
       forum: z.object({
-        id: z.number(),
-        nome: z.string(),
+        id: z.number().nullable(),
+        nome: z.string().nullable(),
       }),
       tipo_de_justica: z.object({
         id: z.number(),
         nome: z.string(),
       }),
       sistema: z.object({
-        id: z.number(),
-        nome: z.string(),
+        id: z.number().nullable(),
+        nome: z.string().nullable(),
       }),
       cliente: z.object({
         id: z.number(),
@@ -348,13 +372,13 @@ export const listaTiposDeSistemaResponseSchema = makeResponseSchema(
   ),
 )
 
-export const listaClientesResponseSchema = makeResponseSchema(
+export const listaClientesResponseSchema = wrongResponseSchema(
   z.array(
     z.object({
       id: z.number(),
       nome: z.string(),
-      cpf_cnpj: z.string(),
-      cidade: z.string(),
+      cpf_cnpj: z.string().nullable(),
+      cidade: z.string().nullable(),
     }),
   ),
 )
@@ -388,14 +412,14 @@ export const consultaClienteResponseSchema = makeResponseSchema(
   }),
 )
 
-export const listaPartesResponseSchema = makeResponseSchema(
+export const listaPartesResponseSchema = wrongWithIntResponseSchema(
   z.array(
     z.object({
       id: z.number(),
       nome: z.string(),
-      cpf_cnpj: z.string(),
-      cidade: z.string(),
-      uf: z.string(),
+      cpf_cnpj: z.string().nullable(),
+      cidade: z.string().nullable(),
+      uf: z.string().nullable(),
     }),
   ),
 )
@@ -446,8 +470,8 @@ export const listaPublicacoesResponseSchema = makeResponseSchema(
           nome: z.string(),
         }),
         forum: z.object({
-          id: z.number(),
-          nome: z.string(),
+          id: z.number().nullable(),
+          nome: z.string().nullable(),
         }),
         cartorio: z.object({
           id: z.number(),
@@ -461,7 +485,7 @@ export const listaPublicacoesResponseSchema = makeResponseSchema(
           id: z.number(),
           nome: z.string(),
         }),
-        pasta_cliente: z.string(),
+        pasta_cliente: z.string().nullish(),
         cliente: z.object({
           id: z.number(),
           nome: z.string(),

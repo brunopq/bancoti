@@ -17,6 +17,7 @@ export const db = drizzle({
   casing: "snake_case",
 })
 
+container.bind("db").toConstantValue(db)
+
 await migrate(db, { migrationsFolder: "drizzle" })
 
-container.bind("db").toConstantValue(db)

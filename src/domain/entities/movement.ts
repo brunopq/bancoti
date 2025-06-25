@@ -6,4 +6,7 @@ export type Movement = {
   type: string
   title: string
   description: string
+
+  // metadata, business logic should ignore
+  _judiceId?: number | null
 }

@@ -1,8 +1,8 @@
 import { describe, it, before } from "node:test"
 import assert from "node:assert"
 
-import { apiClient } from "../../src/domain/services/judiceService/apiClient.ts"
-import * as dto from "../../src/domain/services/judiceService/dto/index.ts"
+import { apiClient } from "../../src/persistance/external/judice/apiClient.ts"
+import * as dto from "../../src/persistance/external/judice/dto/index.ts"
 
 describe("Judice API Client", () => {
   let client: typeof apiClient

@@ -18,9 +18,7 @@ type LawsuitSearchFilters = {
 }
 
 @injectable()
-export class LawsuitRepository
-  implements IBaseRepository<Lawsuit, InsertLawsuit>
-{
+export class LawsuitRepository implements IBaseRepository<Lawsuit, InsertLawsuit> {
   constructor(@inject("db") private db: typeof database) {}
 
   async findById(id: string): Promise<LawsuitWith<"movements"> | null> {
@@ -65,7 +63,10 @@ export class LawsuitRepository
     const [created] = await this.db.insert(lawsuit).values(item).returning()
     return created
   }
-  async update(id: string, item: InsertLawsuit): Promise<Lawsuit | null> {
+  async update(
+    id: string,
+    item: Partial<InsertLawsuit>,
+  ): Promise<Lawsuit | null> {
     const [updated] = await this.db
       .update(lawsuit)
       .set(item)

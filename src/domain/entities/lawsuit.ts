@@ -5,6 +5,9 @@ export const lawsuitAreas = [
   "civil",
   "criminal",
   "administrative",
+  "legal_compliance",
+  "social_security",
+  "family",
   "labor",
   "tax",
 ] as const

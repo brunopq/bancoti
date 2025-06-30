@@ -11,20 +11,21 @@ services:
       - db_data:/var/lib/postgresql/data
 
 
-  # metabase:
-  #   image: metabase/metabase:latest
-  #   environment:
-  #     MB_DB_TYPE: postgres
-  #     MB_DB_HOST: db
-  #     MB_DB_PORT: 5432
-  #     MB_DB_USER: user
-  #     MB_DB_PASS: password
-  #     MB_DB_DBNAME: mydatabase
-  #   ports:
-  #     - "3000:3000"
-  #   depends_on:
-  #     - db
-  #   restart: always
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 1s
+      retries: 5
 
 volumes:
   db_data:
+  redis_data:
+    driver: local

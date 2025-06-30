@@ -10,6 +10,10 @@ import { LawsuitRepository } from "../../../persistance/repositories/LawsuitRepo
 import type { Lawsuit, LawsuitWith } from "../../entities/lawsuit.ts"
 import type { PartyRole } from "../../entities/party.ts"
 
+import { LawsuitSyncService } from "../lawsuitSyncService/index.ts"
+import { MovementSyncService } from "../movementSyncService/index.ts"
+import { MovementService } from "../movementService/index.ts"
+
 type LawsuitFilters = {
   clientId?: string
   clientRole?: PartyRole
@@ -20,6 +24,12 @@ export class LawsuitService {
   constructor(
     @inject(LawsuitRepository)
     private readonly lawsuitRepository: LawsuitRepository,
+    @inject(LawsuitSyncService)
+    private readonly lawsuitSyncService: LawsuitSyncService,
+    @inject(MovementSyncService)
+    private readonly movementSyncService: MovementSyncService,
+    @inject(MovementService)
+    private readonly movementService: MovementService,
   ) {}
 
   async index(filters?: LawsuitFilters): Promise<Lawsuit[]> {
@@ -33,23 +43,34 @@ export class LawsuitService {
   }
 
   async getById(id: string): Promise<Lawsuit | LawsuitWith<"movements">> {
-    console.log("getting by id")
     const lawsuit = await this.lawsuitRepository.findById(id)
 
     if (!lawsuit) {
       throw new NotFoundException(`Lawsuit with id "${id}" not found.`)
     }
 
-    return lawsuit
+    const movements = await this.movementService.listByLawsuitId(lawsuit.id)
+
+    return {
+      ...lawsuit,
+      movements,
+    }
   }
 
   async getByCnj(cnj: string): Promise<Lawsuit | LawsuitWith<"movements">> {
-    const lawsuit = await this.lawsuitRepository.findByCnj(cnj)
+    const lawsuit = await this.lawsuitSyncService.syncLawsuitByCNJ(cnj)
 
     if (!lawsuit) {
       throw new NotFoundException(`Lawsuit with cnj "${cnj}" not found.`)
     }
 
-    return lawsuit
+    await this.movementSyncService.sync()
+
+    const movements = await this.movementService.listByLawsuitId(lawsuit.id)
+
+    return {
+      ...lawsuit,
+      movements,
+    }
   }
 }

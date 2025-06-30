@@ -9,18 +9,22 @@ export const movement = pgTable(
   "movements",
   {
     ...baseTable,
-    lawsuit_id: text().notNull(),
+    lawsuitId: text().references(() => lawsuit.id), // .notNull(), remove not null for now
+    lawsuitCnj: text(), // This is a denormalized field, should be removed in the future
     type: text().notNull(),
     title: text().notNull(),
     description: text().notNull(),
     _judiceId: bigint({ mode: "number" }).unique(),
   },
-  (a) => [index("judice_id").on(a._judiceId.desc())],
+  (a) => [
+    index("judice_id").on(a._judiceId.desc()),
+    index("lawsuit_cnj").on(a.lawsuitCnj),
+  ],
 )
 
 export const movementRelations = relations(movement, ({ one, many }) => ({
   lawsuit: one(lawsuit, {
-    fields: [movement.lawsuit_id],
+    fields: [movement.lawsuitId],
     references: [lawsuit.id],
   }),
 }))

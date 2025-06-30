@@ -2,6 +2,8 @@ import { container } from "../../dependencyManager.ts"
 
 import { ClientRepository } from "../repositories/ClientRepository.ts"
 import { CourtRepository } from "../repositories/CourtRepository.ts"
+import { DistrictRepository } from "../repositories/DistrictRepository.ts"
+import { ForumRepository } from "../repositories/ForumRepository.ts"
 import { IndividualRepository } from "../repositories/IndividualRepository.ts"
 import { LawsuitRepository } from "../repositories/LawsuitRepository.ts"
 import { LegalEntityRepository } from "../repositories/LegalEntityRepository.ts"
@@ -14,12 +16,25 @@ async function seed() {
   const partyRepo = container.get(PartyRepository)
   const individualRepo = container.get(IndividualRepository)
   const legalEntityRepo = container.get(LegalEntityRepository)
+  const districtRepo = container.get(DistrictRepository)
+  const forumRepo = container.get(ForumRepository)
+
+  const district = await districtRepo.create({
+    name: "Comarca de Bagé",
+    state: "RS",
+    municipalities: ["Bagé", "Candiota", "Aceguá", "Hulha Negra"],
+  })
+
+  const forum = await forumRepo.create({
+    name: "Forum de Bagé",
+    districtId: district.id,
+  })
 
   const court = await courtRepo.create({
-    name: "Tribunal de Justiça do Estado de São Paulo",
-    abbreviation: "TJSP",
-    district: "São Paulo",
-    type: "Tribunal de Justiça",
+    name: "3ª Vara Cível",
+    forumId: forum.id,
+    abbreviation: "3ª VC",
+    area: "civil",
   })
 
   const lawsuit = await lawsuitRepo.create({

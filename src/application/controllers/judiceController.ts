@@ -1,7 +1,7 @@
 import { Hono } from "hono"
 import { describeRoute } from "hono-openapi"
 
-import { JudiceService } from "../../domain/services/judiceService/index.ts"
+import { JudiceService } from "../../persistance/external/judice/judiceService.ts"
 
 import { container } from "../../dependencyManager.ts"
 import { resolver } from "hono-openapi/zod"
@@ -46,7 +46,7 @@ judiceController.get(
     validateResponse: true,
   }),
   async (c) => {
-    const lawsuits = await judiceService.getLawsuits()
+    const lawsuits = await judiceService()
 
     return c.json(lawsuits)
   },

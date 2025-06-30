@@ -12,9 +12,7 @@ export const lawsuit = pgTable("lawsuits", {
   cnj: text().notNull(),
   status: text().notNull(),
   area: lawsuitArea().notNull(),
-  courtId: text()
-    .notNull()
-    .references(() => court.id), // Foreign key to court table
+  courtId: text().references(() => court.id), // Foreign key to court table
 })
 
 

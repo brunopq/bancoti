@@ -13,9 +13,24 @@ export const lawsuitStatus = pgEnum("lawsuit_status", [
   "cancelled",
 ])
 export const lawsuitArea = pgEnum("lawsuit_area", lawsuitAreas)
+export const courtArea = pgEnum("court_area", [
+  "civil",
+  "criminal",
+  "labor",
+  "family",
+  "public_finance",
+  "small_claims",
+  "electoral",
+  "military",
+  "juvenile",
+  "environmental",
+  "corporate",
+  "penal_execution",
+])
 
 export type PartyRole = (typeof partRole.enumValues)[number]
 export type EntityType = (typeof entityType.enumValues)[number]
 export type GenderType = (typeof genderType.enumValues)[number]
 export type LawsuitStatus = (typeof lawsuitStatus.enumValues)[number]
 export type LawsuitArea = (typeof lawsuitArea.enumValues)[number]
+export type CourtArea = (typeof courtArea.enumValues)[number]

@@ -82,7 +82,7 @@ lawsuitController.get(
         },
       },
     },
-    validateResponse: true,
+    // validateResponse: true,
   }),
   zValidator("param", z.object({ id: z.string() })),
   async (c) => {
@@ -107,13 +107,13 @@ lawsuitController.get(
         },
       },
     },
-    validateResponse: true,
+    // validateResponse: true,
   }),
   zValidator("param", z.object({ cnj: z.string() })),
   async (c) => {
     const { cnj } = c.req.valid("param")
 
-    const res = lawsuitService.getByCnj(cnj)
+    const res = await lawsuitService.getByCnj(cnj)
 
     return c.json(res)
   },

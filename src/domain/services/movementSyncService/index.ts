@@ -15,21 +15,27 @@ export class MovementSyncService {
   ) {}
 
   async sync() {
+    // let i = 0
+    let lastMovId = 0
     while (true) {
+      // console.log("sync step ", i++)
+
       const [lastMovement] = await this.movementRepository.findAll({
         orderBy: { _judiceId: "desc" },
         limit: 1,
       })
 
-      const lastMovId = lastMovement?._judiceId || 0
+      lastMovId = Math.max(lastMovement?._judiceId || 0, lastMovId)
+
 
       const judiceMovements = await this.judice.listMovements({
         startFrom: lastMovId,
       })
 
       if (
-        judiceMovements.length === 1 &&
-        lastMovement._judiceId === judiceMovements[0].id
+        judiceMovements.length === 0 ||
+        (judiceMovements.length === 1 &&
+          lastMovement._judiceId === judiceMovements[0].id)
       ) {
         // No new movements to sync
         return
@@ -38,17 +44,21 @@ export class MovementSyncService {
       for (const jMov of judiceMovements) {
         const lawsuit = await this.lawsuitRepository.findByCnj(jMov.cnj)
 
-        if (!lawsuit) {
-          throw new Error("Handle this error case please i'm dumb")
-        }
+        lastMovId = Math.max(jMov.id, lastMovId)
 
-        const mov = await this.movementRepository.create({
-          lawsuit_id: lawsuit.id,
-          _judiceId: jMov.id,
-          description: jMov.comentario,
-          title: "Sem título", // TODO: think about this 🤔🤔
-          type: jMov.tipo_de_tramite.tipo_de_tramite_descricao,
-        })
+        try {
+          const mov = await this.movementRepository.create({
+            lawsuitId: lawsuit?.id,
+            lawsuitCnj: jMov.cnj,
+            _judiceId: jMov.id,
+            description: jMov.comentario,
+            title: "Sem título", // TODO: think about this 🤔🤔
+            type:
+              jMov.tipo_de_tramite.tipo_de_tramite_descricao || "Desconhecido",
+          })
+        } catch (e) {
+          console.error("Error creating movement:", jMov.id, jMov.cnj)
+        }
       }
     }
   }

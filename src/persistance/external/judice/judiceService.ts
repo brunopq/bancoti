@@ -2,9 +2,11 @@ import { inject, injectable } from "inversify"
 import type { z } from "zod"
 
 import { apiClient } from "./apiClient.ts"
-import { jLawsuitMapper } from "./mappers/jLawsuitMapper.ts"
-import type { listaAndamentosResponseSchema } from "./dto/index.ts"
-// import { jMovementMapper } from "./mappers/jMovementMapper.ts"
+import type {
+  listaAndamentosResponseSchema,
+  consultaProcessoResponseSchema,
+} from "./dto/index.ts"
+import type { ICacheService } from "../../../domain/services/ICacheService.ts"
 
 import type { Lawsuit } from "../../../domain/entities/lawsuit.ts"
 
@@ -12,60 +14,51 @@ type JudiceMovementDTO = z.infer<
   typeof listaAndamentosResponseSchema
 >["retorno"]["object"][number]
 
+type JudiceLawsuitDTO = z.infer<
+  typeof consultaProcessoResponseSchema
+>["retorno"]["object"][number]
+
 type ListMovementsOptions = {
   startFrom?: number
 }
 
 interface IJudiceService {
-  getLawsuitByCNJ(cnj: string): Promise<Partial<Lawsuit>>
+  getLawsuitByCNJ(cnj: string): Promise<JudiceLawsuitDTO>
   listMovements(options?: ListMovementsOptions): Promise<JudiceMovementDTO[]>
 }
 
 @injectable()
 export class JudiceService implements IJudiceService {
   constructor(
+    @inject("CacheService")
+    private readonly cacheService: ICacheService<string, number>,
     private readonly api: typeof apiClient = apiClient,
-    private readonly cnjToJidCache: Map<string, number> = new Map(),
   ) {}
 
   private async getJidByCNJ(cnj: string): Promise<number | undefined> {
-    const jid = this.cnjToJidCache.get(cnj)
+    console.log("Fetching JID for CNJ:", cnj)
+    const jid = await this.cacheService.get(cnj)
     if (jid !== undefined) return jid
 
+    console.log("CNJ not found in cache, fetching from API...")
     const { body, status } = await this.api.listaTodosProcessos({
       body: { action: "listacnj" },
     })
 
     if (status !== 200 || !body.success) {
+      console.error("fuck")
       return undefined
     }
 
+    console.log("Populating CNJ to JID cache...")
     for (const l of body.retorno.object) {
-      if (l.cnj && l.id) this.cnjToJidCache.set(l.cnj, l.id)
+      if (l.cnj && l.id) await this.cacheService.set(l.cnj, l.id)
     }
-
-    // Try cache again
-    return this.cnjToJidCache.get(cnj)
+    console.log("CNJ to JID cache populated, checking again...")
+    return await this.cacheService.get(cnj)
   }
 
-  // async getLawsuits(): Promise<Partial<Lawsuit>[]> {
-  //   const { body, status } = await this.api.listaProcessos({
-  //     body: { action: "list" },
-  //   })
-
-  //   if (status !== 200)
-  //     throw new Error(
-  //       `Failed to fetch lawsuits, judice responded with code ${status}`,
-  //     )
-
-  //   if (!body.success) throw new Error(`Judice API error: ${body.message}`)
-
-  //   return body.retorno.object.map((j) => ({
-  //     jid: j.id,
-  //   }))
-  // }
-
-  async getLawsuitByCNJ(cnj: string): Promise<Partial<Lawsuit>> {
+  async getLawsuitByCNJ(cnj: string): Promise<JudiceLawsuitDTO> {
     const jid = await this.getJidByCNJ(cnj)
 
     if (!jid) {
@@ -83,7 +76,7 @@ export class JudiceService implements IJudiceService {
 
     if (!body.success) throw new Error(`Judice API error: ${body.message}`)
 
-    return jLawsuitMapper.toDomain(body.retorno.object[0])
+    return body.retorno.object[0]
   }
 
   async listMovements(

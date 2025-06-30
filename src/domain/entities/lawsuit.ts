@@ -21,7 +21,7 @@ export type Lawsuit = {
   cnj: string
   status: string
   area: LawsuitArea
-  courtId: string
+  courtId: string | null
 }
 
 type LawsuitRelations = {

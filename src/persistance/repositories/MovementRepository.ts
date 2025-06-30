@@ -4,10 +4,11 @@ import { movement } from "../models/movement.ts"
 import type { IBaseRepository } from "./IBaseRepository.ts"
 import type { db as database } from "../db.ts"
 
-type Movement = typeof movement.$inferSelect
+export type Movement = typeof movement.$inferSelect
 type InsertMovement = typeof movement.$inferInsert
 
 type ListMovementsOptions = {
+  where?: Partial<Record<keyof Movement, Movement[keyof Movement]>>
   orderBy?: Partial<Record<keyof Movement, "asc" | "desc">>
   limit?: number
 }
@@ -48,7 +49,10 @@ export class MovementRepository implements IBaseRepository<Movement, InsertMovem
     const [created] = await this.db.insert(movement).values(item).returning()
     return created
   }
-  async update(id: string, item: InsertMovement): Promise<Movement | null> {
+  async update(
+    id: string,
+    item: Partial<InsertMovement>,
+  ): Promise<Movement | null> {
     const [updated] = await this.db
       .update(movement)
       .set(item)

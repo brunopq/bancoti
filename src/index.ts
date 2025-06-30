@@ -9,7 +9,7 @@ import { z } from "zod"
 
 import { db } from "./persistance/db.ts"
 
-import { judiceController } from "./application/controllers/judiceController.ts"
+// import { judiceController } from "./application/controllers/judiceController.ts"
 import { clientController } from "./application/controllers/clientController.ts"
 import { lawsuitController } from "./application/controllers/lawsuitController.ts"
 
@@ -49,7 +49,7 @@ app.get(
   },
 )
 
-app.route("/judice", judiceController)
+// app.route("/judice", judiceController)
 app.route("/clients", clientController)
 app.route("/lawsuits", lawsuitController)
 

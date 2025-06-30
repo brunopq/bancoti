@@ -1,5 +1,5 @@
 import { inject, injectable } from "inversify"
-import { eq } from "drizzle-orm"
+import { and, eq } from "drizzle-orm"
 import { court } from "../models/court.ts"
 import type { IBaseRepository } from "./IBaseRepository.ts"
 import type { db as database } from "../db.ts"
@@ -15,6 +15,19 @@ export class CourtRepository implements IBaseRepository<Court, InsertCourt> {
     const rows = await this.db.select().from(court).where(eq(court.id, id))
     return rows[0] ?? null
   }
+
+  async findByNameAndForum(
+    name: string,
+    forumId: string,
+  ): Promise<Court | null> {
+    const rows = await this.db
+      .select()
+      .from(court)
+      .where(and(eq(court.name, name), eq(court.forumId, forumId)))
+
+    return rows[0] ?? null
+  }
+
   async findAll(): Promise<Court[]> {
     return this.db.select().from(court)
   }

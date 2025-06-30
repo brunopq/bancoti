@@ -36,6 +36,20 @@
       "when": 1750874680089,
       "tag": "0004_familiar_slyde",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1750958098075,
+      "tag": "0005_flowery_warbound",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1751040705829,
+      "tag": "0006_violet_justice",
+      "breakpoints": true
     }
   ]
 }

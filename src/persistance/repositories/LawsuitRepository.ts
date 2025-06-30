@@ -27,7 +27,7 @@ export class LawsuitRepository implements IBaseRepository<Lawsuit, InsertLawsuit
       with: { movements: true },
     })
 
-    return lawsuit || null
+    return lawsuit as LawsuitWith<"movements"> | null
   }
 
   async findAll(filters?: LawsuitSearchFilters): Promise<Lawsuit[]> {
@@ -56,7 +56,8 @@ export class LawsuitRepository implements IBaseRepository<Lawsuit, InsertLawsuit
       with: { movements: true },
     })
 
-    return lawsuit || null
+    
+    return lawsuit as LawsuitWith<"movements"> | null
   }
 
   async create(item: InsertLawsuit): Promise<Lawsuit> {

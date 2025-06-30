@@ -11,7 +11,7 @@ type JAndamento = z.infer<
 
 type PartialMovement = Omit<
   Movement,
-  "id" | "createdAt" | "updatedAt" | "lawsuit_id"
+  "id" | "createdAt" | "updatedAt" | "lawsuitId"
 >
 
 export const jMovementMapper: JMapper<JAndamento, PartialMovement> = {

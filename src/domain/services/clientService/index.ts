@@ -18,18 +18,60 @@ export class ClientService {
   async getClientById(id: string): Promise<Client | null> {
     const client = await this.clientRepository.findById(id)
 
-    return client
+    if (!client) return null
+
+    if (client.type === "individual") {
+      return {
+        type: "individual",
+        id: client.id,
+        name: client.name,
+        cpf: client.cpf,
+        email: client.email || undefined,
+        phones: client.phones || [],
+        birthDate: client.birthDate || undefined,
+        gender: client.gender || undefined,
+      }
+    }
+
+    if (client.type === "legal_entity") {
+      return {
+        type: "company",
+        id: client.id,
+        corporateName: client.corporateName,
+        cnpj: client.cnpj,
+      }
+    }
+
+    throw new Error("Unknown client type")
+
   }
 
   async getClientByCPF(cpf: string): Promise<Individual | null> {
     const client = await this.clientRepository.findByCPF(cpf)
 
-    return client
+    if (!client) return null
+
+    return {
+      type: "individual",
+      id: client.id,
+      name: client.name,
+      cpf: client.cpf,
+      email: client.email || undefined,
+      phones: client.phones || [],
+      birthDate: client.birthDate || undefined,
+    }
   }
 
   async getClientByCNPJ(cnpj: string): Promise<Company | null> {
     const client = await this.clientRepository.findByCNPJ(cnpj)
 
-    return client
+    if (!client) return null
+
+    return {
+      type: "company",
+      id: client.id,
+      corporateName: client.corporateName,
+      cnpj: client.cnpj,
+    }
   }
 }

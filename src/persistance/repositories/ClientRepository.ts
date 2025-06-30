@@ -13,7 +13,9 @@ type NewClient = typeof client.$inferInsert
 type Individual = typeof individual.$inferSelect
 type Company = typeof legalEntity.$inferSelect
 
-type FullClient = (Client & Individual) | (Client & Company)
+type FullClient =
+  | (Client & { type: "individual" } & Individual)
+  | (Client & { type: "legal_entity" } & Company)
 
 @injectable()
 export class ClientRepository implements IBaseRepository<Client, NewClient> {
@@ -27,8 +29,6 @@ export class ClientRepository implements IBaseRepository<Client, NewClient> {
 
     if (!clientData) return null
 
-    let domainClient: FullClient | null = null
-
     if (clientData.type === "individual") {
       const [individualData] = await this.db
         .select()
@@ -37,8 +37,10 @@ export class ClientRepository implements IBaseRepository<Client, NewClient> {
 
       if (!individualData) return null
 
-      domainClient = { ...clientData, ...individualData }
-    } else if (clientData.type === "legal_entity") {
+      return { ...clientData, ...individualData, type: "individual" }
+    }
+
+    if (clientData.type === "legal_entity") {
       const [legalEntityData] = await this.db
         .select()
         .from(legalEntity)
@@ -46,12 +48,10 @@ export class ClientRepository implements IBaseRepository<Client, NewClient> {
 
       if (!legalEntityData) return null
 
-      domainClient = { ...clientData, ...legalEntityData }
-    } else {
-      throw new Error(`Unknown client type: ${clientData.type}`)
+      return { ...clientData, ...legalEntityData, type: "legal_entity" }
     }
 
-    return domainClient
+      throw new Error(`Unknown client type: ${clientData.type}`)
   }
 
   async findByCPF(cpf: string): Promise<Individual | null> {

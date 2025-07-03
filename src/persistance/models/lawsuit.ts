@@ -2,7 +2,7 @@ import { pgTable, text } from "drizzle-orm/pg-core"
 import { relations } from "drizzle-orm"
 
 import { baseTable } from "./baseTable.ts"
-import { lawsuitArea } from "./enums.ts"
+import { lawsuitArea, lawsuitInstance } from "./enums.ts"
 
 import { movement } from "./movement.ts"
 import { court } from "./court.ts"
@@ -12,6 +12,7 @@ export const lawsuit = pgTable("lawsuits", {
   cnj: text().notNull(),
   status: text().notNull(),
   area: lawsuitArea().notNull(),
+  instance: lawsuitInstance().notNull(),
   courtId: text().references(() => court.id), // Foreign key to court table
 })
 

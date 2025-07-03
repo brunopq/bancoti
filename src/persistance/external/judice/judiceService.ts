@@ -20,6 +20,7 @@ type JudiceLawsuitDTO = z.infer<
 
 type ListMovementsOptions = {
   startFrom?: number
+  clientView?: boolean
 }
 
 interface IJudiceService {
@@ -86,6 +87,7 @@ export class JudiceService implements IJudiceService {
       body: {
         action: "list",
         id: options?.startFrom ?? 0,
+        clientview: options?.clientView ? 1 : 0,
       },
     })
 

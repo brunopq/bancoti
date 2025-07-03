@@ -12,7 +12,10 @@ export const lawsuitAreas = [
   "tax",
 ] as const
 
+export const lawsuitInstances = ["first", "second", "special"] as const
+
 export type LawsuitArea = (typeof lawsuitAreas)[number]
+export type LawsuitInstance = (typeof lawsuitInstances)[number]
 
 export type Lawsuit = {
   id: string
@@ -21,6 +24,7 @@ export type Lawsuit = {
   cnj: string
   status: string
   area: LawsuitArea
+  instance: LawsuitInstance
   courtId: string | null
 }
 

@@ -30,6 +30,7 @@ export class MovementSyncService {
 
       const judiceMovements = await this.judice.listMovements({
         startFrom: lastMovId,
+        clientView: true,
       })
 
       if (
@@ -48,6 +49,8 @@ export class MovementSyncService {
 
         try {
           const mov = await this.movementRepository.create({
+            createdAt: new Date(jMov.dta),
+            updatedAt: new Date(jMov.lastupdate),
             lawsuitId: lawsuit?.id,
             lawsuitCnj: jMov.cnj,
             _judiceId: jMov.id,

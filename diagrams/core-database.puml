@@ -9,148 +9,166 @@ hide circle
 !procedure $meta()
   !if $renderMeta
     * id: text
-    ' * created_at: datetime
-    ' * updated_at: datetime
+    * createdAt: datetime
+    * updatedAt: datetime
   !else
   !endif
 !endprocedure
 
-entity "Tribunais" as courts {
+entity "Distritos" as districts {
   $meta()
   --
-  nome: text
-  abreviação: text
-  comarca text
-  tipo: text
+  * name: text
+  * municipalities: text[]
+  * state: text
 }
 
-entity "Varas" as judging_units {
+entity "Fóruns" as forums {
   $meta()
-  * court_id: text
+  * districtId: text (fk districts)
   --
-  * nome text
-  * endereço text
+  * name: text
+}
+
+entity "Tribunais" as courts {
+  $meta()
+  * forumId: text (fk forums)
+  --
+  * name: text
+  * abbreviation: text
+  * area: court_area
 }
 
 entity "Processo" as lawsuits {
   $meta()
+  courtId: text (fk courts)
   --
-  cnj: text
-  status: text
+  * cnj: text
+  * status: text
+  * area: lawsuit_area
+  * instance: lawsuit_instance
 }
 
 entity "Movimentação" as movements {
   $meta()
-  * lawsuit_id: text (fk lawsuits)
+  lawsuitId: text (fk lawsuits)
   --
-  * tipo: text
-  * titulo: text
-  descricao: text
+  lawsuitCnj: text
+  * type: text
+  * title: text
+  * description: text
+  * showClient: boolean
+  _judiceId: bigint
 }
 
 entity "Evento" as events {
   $meta()
-  * lawsuit_id: text (fk lawsuits)
+  lawsuit_id: text (fk lawsuits)
   --
-  tipo: text ("Audiência" | "Perícia")
-  titulo: text
-  descricao: text
-  data: datetime
+  type: text
+  title: text
+  description: text
+  date: datetime
 }
 
 entity "Parte" as parties {
   $meta()
-  * lawsuit_id: text (fk lawsuits)
-  * parte_id: text (fk individual | legalEntity)
-  * tipo: ("Pessoa física" | "Pessoa Jurídica")
+  entity_id: text (fk individual | legalEntity)
+  lawsuit_id: text (fk lawsuits)
   --
-  papel: part_type 
+  * type: entity_type
+  role: part_role
 }
 
-enum "Tipo de Parte" as part_type {
-  autor: author
-  réu: defendant
+enum "Tipo de Parte" as part_role {
+  author
+  defendant
+}
+
+enum "Tipo de Entidade" as entity_type {
+  individual
+  legal_entity
+}
+
+enum "Área do Tribunal" as court_area {
+  civil
+  criminal
+  labor
+  family
+  public_finance
+  small_claims
+  electoral
+  military
+  juvenile
+  environmental
+  corporate
+  penal_execution
 }
 
 entity "Testemunha" as witnesses {
   $meta()
-  * part_id: text
-  * individual_id: text
-  ' lawsuit_id: text
+  part_id: text (fk parties)
+  individual_id: text (fk individuals)
   --
 }
 
 entity "Cliente" as clients {
   $meta()
   --
-  parte_id: text (fk individual | legalEntity)
-  tipo: ("Pessoa física" | "Pessoa Jurídica")
-  ' origem: text
-  ' indicação: boolean
+  * entityId: text (fk individual | legalEntity)
+  * type: entity_type
 }
 
 entity "Pessoa física" as individuals {
   $meta()
   --
-  nome: text
-  cpf: text
-  dataNascimento: datetime
-  ' genero: text
-  ' nacionalidade: text
-  ' estadoCivil: text
-  ' profissao: text
-  ' endereco: text
-  ' telefone: text
-  ' email: text
+  * name: text
+  * cpf: text
+  birthDate: datetime
+  gender: gender_type
+  phones: text[]
+  email: text
 }
 
 entity "Pessoa Jurídica" as legalEntities {
   $meta()
   --
-  razaoSocial: text
-  cnpj: text
-  ' inscricaoEstadual: text
-  ' endereco: text
-  ' telefone: text
-  ' email: text
+  * corporateName: text
+  * cnpj: text
 }
 
-' TODO: maybe merge the documents?
 entity "Documento do Cliente" as client_documents {
   $meta()
-  * client_id: text
+  client_id: text (fk clients)
   --
-  tipo: text
-  data: datetime
-  descricao: text
+  type: text
+  date: datetime
+  description: text
   file_url: text
 }
 
 entity "Documento do Processo" as lawsuit_documents {
   $meta()
-  * lawsuit_id: text
-  movementation_id: text
+  lawsuit_id: text (fk lawsuits)
+  movementation_id: text (fk movements)
   --
-  tipo: text
-  data: datetime
-  descricao: text
+  type: text
+  date: datetime
+  description: text
   file_url: text
 }
 
-client_documents  }o--|| clients
-lawsuit_documents }o--|| lawsuits
-lawsuit_documents }o--o| movements
-
-courts ||--o{ judging_units
-judging_units ||--o{ lawsuits
-
-' witnesses -- individuals
-' witnesses -- parties
-' witnesses -- lawsuits
+' Relationships
+districts ||--o{ forums
+forums ||--o{ courts
+courts ||--o{ lawsuits
 
 movements }o--|| lawsuits
-
 events }o--|| lawsuits
+parties }o--|| lawsuits
+
+witnesses }o--|| parties
+witnesses }o--|| individuals
 
 clients .. individuals
 clients .. legalEntities
@@ -158,21 +176,11 @@ clients .. legalEntities
 parties .. individuals
 parties .. legalEntities
 
-parties -- part_type
+parties -- part_role
+parties -- entity_type
 
-parties }o--|| lawsuits
-
-witnesses }o--|| parties
-' witnesses }o--|| lawsuits
-witnesses }o--|| individuals
-
-
-' parties -- part_lawsuit
-' lawsuits --{ part_lawsuit
-
-
-
-' parties ||--|| individuals
-' parties ||--|| legalEntities
+client_documents }o--|| clients
+lawsuit_documents }o--|| lawsuits
+lawsuit_documents }o--o| movements
 
 @enduml

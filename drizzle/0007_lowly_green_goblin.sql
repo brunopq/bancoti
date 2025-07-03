@@ -1,0 +1,1 @@
+ALTER TABLE "movements" ADD COLUMN "show_client" boolean DEFAULT false NOT NULL;

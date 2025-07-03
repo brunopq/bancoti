@@ -50,6 +50,20 @@
       "when": 1751040705829,
       "tag": "0006_violet_justice",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1751464881155,
+      "tag": "0007_lowly_green_goblin",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1751567199972,
+      "tag": "0008_dusty_eddie_brock",
+      "breakpoints": true
     }
   ]
 }

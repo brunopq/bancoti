@@ -11,5 +11,9 @@ export const env = cleanEnv(process.env, {
   JUDICE_API_URL: url(),
   JUDICE_API_TOKEN: str(),
   JUDICE_API_TENANT: str(),
+
+  JUDIT_REQUESTS_BASE_URL: url(),
+  JUDIT_TRACKING_BASE_URL: url(),
+
   REDIS_URL: url(),
 })

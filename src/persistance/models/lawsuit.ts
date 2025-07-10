@@ -6,6 +6,7 @@ import { lawsuitArea, lawsuitInstance } from "./enums.ts"
 
 import { movement } from "./movement.ts"
 import { court } from "./court.ts"
+import { subject } from "./subject.ts"
 
 export const lawsuit = pgTable("lawsuits", {
   ...baseTable,
@@ -13,14 +14,19 @@ export const lawsuit = pgTable("lawsuits", {
   status: text().notNull(),
   area: lawsuitArea().notNull(),
   instance: lawsuitInstance().notNull(),
-  courtId: text().references(() => court.id), // Foreign key to court table
+  courtsIds: text()
+    .references(() => court.id)
+    .array()
+    .notNull(),
+  subjectsIds: text()
+    .references(() => subject.id)
+    .array()
+    .notNull(),
 })
-
 
 export const lawsuitRelations = relations(lawsuit, ({ one, many }) => ({
   movements: many(movement),
-  court: one(court, {
-    fields: [lawsuit.courtId],
-    references: [court.id],
-  }),
 }))
+
+export type Lawsuit = typeof lawsuit.$inferSelect
+export type InsertLawsuit = typeof lawsuit.$inferInsert

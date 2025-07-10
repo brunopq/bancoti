@@ -2,13 +2,13 @@ import { inject, injectable } from "inversify"
 import { eq } from "drizzle-orm"
 import { event } from "../models/event.ts"
 import type { IBaseRepository } from "./IBaseRepository.ts"
-import type { db as database } from "../db.ts"
+import type { Database } from "../db.ts"
 
 type Event = typeof event.$inferSelect
 
 @injectable()
 export class EventRepository implements IBaseRepository<Event> {
-  constructor(@inject("db") private db: typeof database) {}
+  constructor(@inject("db") private db: Database) {}
 
   async findById(id: string): Promise<Event | null> {
     const rows = await this.db.select().from(event).where(eq(event.id, id))

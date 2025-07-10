@@ -10,6 +10,7 @@ export const lawsuitAreas = [
   "family",
   "labor",
   "tax",
+  "unknown",
 ] as const
 
 export const lawsuitInstances = ["first", "second", "special"] as const
@@ -25,6 +26,7 @@ export type Lawsuit = {
   status: string
   area: LawsuitArea
   instance: LawsuitInstance
+  subjects: string[]
   courtId: string | null
 }
 

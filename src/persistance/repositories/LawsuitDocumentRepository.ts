@@ -2,15 +2,13 @@ import { inject, injectable } from "inversify"
 import { eq } from "drizzle-orm"
 import { lawsuitDocument } from "../models/lawsuitDocument.ts"
 import type { IBaseRepository } from "./IBaseRepository.ts"
-import type { db as database } from "../db.ts"
+import type { Database } from "../db.ts"
 
 type LawsuitDocument = typeof lawsuitDocument.$inferSelect
 
 @injectable()
-export class LawsuitDocumentRepository
-  implements IBaseRepository<LawsuitDocument>
-{
-  constructor(@inject("db") private db: typeof database) {}
+export class LawsuitDocumentRepository implements IBaseRepository<LawsuitDocument> {
+  constructor(@inject("db") private db: Database) {}
 
   async findById(id: string): Promise<LawsuitDocument | null> {
     const rows = await this.db

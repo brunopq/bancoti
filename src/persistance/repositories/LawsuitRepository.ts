@@ -1,16 +1,13 @@
 import { inject, injectable } from "inversify"
-import { and, eq } from "drizzle-orm"
-import { lawsuit } from "../models/lawsuit.ts"
+import { and, eq, inArray } from "drizzle-orm"
+import { lawsuit, type Lawsuit, type InsertLawsuit } from "../models/lawsuit.ts"
 import type { IBaseRepository } from "./IBaseRepository.ts"
-import type { db as database } from "../db.ts"
+import type { Database } from "../db.ts"
 
-import type { LawsuitWith } from "../../domain/entities/lawsuit.ts"
 import type { PartyRole } from "../models/enums.ts"
 import { client } from "../models/client.ts"
 import { party } from "../models/party.ts"
-
-type Lawsuit = typeof lawsuit.$inferSelect
-type InsertLawsuit = typeof lawsuit.$inferInsert
+import { subject } from "../models/subject.ts"
 
 type LawsuitSearchFilters = {
   clientId?: string
@@ -18,16 +15,28 @@ type LawsuitSearchFilters = {
 }
 
 @injectable()
-export class LawsuitRepository implements IBaseRepository<Lawsuit, InsertLawsuit> {
-  constructor(@inject("db") private db: typeof database) {}
+export class LawsuitRepository
+  implements IBaseRepository<Lawsuit, InsertLawsuit>
+{
+  constructor(@inject("db") private db: Database) {}
 
-  async findById(id: string): Promise<LawsuitWith<"movements"> | null> {
+  async findById(id: string) {
     const lawsuit = await this.db.query.lawsuit.findFirst({
       where: (l, { eq }) => eq(l.id, id),
       with: { movements: true },
     })
 
-    return lawsuit as LawsuitWith<"movements"> | null
+    if (!lawsuit) return null
+
+    const subjects = await this.db
+      .select()
+      .from(subject)
+      .where(inArray(subject.id, lawsuit.subjectsIds))
+
+    return {
+      ...lawsuit,
+      subjects,
+    }
   }
 
   async findAll(filters?: LawsuitSearchFilters): Promise<Lawsuit[]> {
@@ -44,20 +53,29 @@ export class LawsuitRepository implements IBaseRepository<Lawsuit, InsertLawsuit
           filters?.clientRole ? eq(party.role, filters.clientRole) : undefined,
         ),
       )
-      .leftJoin(party, eq(party.entity_id, client.id))
-      .leftJoin(lawsuit, eq(lawsuit.id, party.lawsuit_id))
+      .leftJoin(party, eq(party.entityId, client.id))
+      .leftJoin(lawsuit, eq(lawsuit.id, party.lawsuitId))
 
     return a.map((aa) => aa.lawsuits).filter((aa) => aa !== null)
   }
 
-  async findByCnj(cnj: string): Promise<LawsuitWith<"movements"> | null> {
+  async findByCnj(cnj: string) {
     const lawsuit = await this.db.query.lawsuit.findFirst({
       where: (l, { eq }) => eq(l.cnj, cnj),
       with: { movements: true },
     })
 
-    
-    return lawsuit as LawsuitWith<"movements"> | null
+    return lawsuit
+  }
+
+  async sync(item: InsertLawsuit): Promise<Lawsuit> {
+    const existing = await this.findByCnj(item.cnj)
+
+    if (existing) {
+      return existing
+    }
+
+    return await this.create(item)
   }
 
   async create(item: InsertLawsuit): Promise<Lawsuit> {

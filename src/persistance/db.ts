@@ -1,4 +1,4 @@
-import { drizzle } from "drizzle-orm/node-postgres"
+import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres"
 import { migrate } from "drizzle-orm/node-postgres/migrator"
 import { Pool } from "pg"
 
@@ -16,6 +16,9 @@ export const db = drizzle({
   schema: models,
   casing: "snake_case",
 })
+
+
+export type Database = NodePgDatabase<typeof models>
 
 container.bind("db").toConstantValue(db)
 

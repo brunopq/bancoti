@@ -10,3 +10,6 @@ export const legalEntity = pgTable("legal_entities", {
   // phone: text(), // telefone
   // email: text(),
 })
+
+export type LegalEntity = typeof legalEntity.$inferSelect
+export type InsertLegalEntity = typeof legalEntity.$inferInsert

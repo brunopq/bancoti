@@ -1,8 +1,8 @@
 import { inject, injectable } from "inversify"
-import { eq } from "drizzle-orm"
+import { eq, sql } from "drizzle-orm"
 import { individual } from "../models/individual.ts"
 import type { IBaseRepository } from "./IBaseRepository.ts"
-import type { db as database } from "../db.ts"
+import type { Database } from "../db.ts"
 
 type Individual = typeof individual.$inferSelect
 type InsertIndividual = typeof individual.$inferInsert
@@ -11,7 +11,7 @@ type InsertIndividual = typeof individual.$inferInsert
 export class IndividualRepository
   implements IBaseRepository<Individual, InsertIndividual>
 {
-  constructor(@inject("db") private db: typeof database) {}
+  constructor(@inject("db") private db: Database) {}
 
   async findById(id: string): Promise<Individual | null> {
     const rows = await this.db
@@ -20,9 +20,43 @@ export class IndividualRepository
       .where(eq(individual.id, id))
     return rows[0] ?? null
   }
+
+  async findByCpf(cpf: string): Promise<Individual | null> {
+    const rows = await this.db
+      .select()
+      .from(individual)
+      .where(eq(individual.cpf, cpf))
+
+    return rows[0] ?? null
+  }
+
+  async findByName(name: string): Promise<Individual | null> {
+    const rows = await this.db
+      .select()
+      .from(individual)
+      .where(sql`unaccent(${individual.name}) ILIKE unaccent(${name})`)
+
+    return rows[0] ?? null
+  }
+
   async findAll(): Promise<Individual[]> {
     return this.db.select().from(individual)
   }
+
+  async sync(item: InsertIndividual): Promise<Individual> {
+    let existing = await this.findByCpf(item.cpf)
+
+    if (existing) return existing
+
+    existing = await this.findByName(item.name)
+
+    if (existing) return existing
+
+    existing = await this.create(item)
+
+    return existing
+  }
+
   async create(item: InsertIndividual): Promise<Individual> {
     const [created] = await this.db.insert(individual).values(item).returning()
     return created

@@ -2,7 +2,7 @@ import { inject, injectable } from "inversify"
 import { asc, desc, eq } from "drizzle-orm"
 import { movement } from "../models/movement.ts"
 import type { IBaseRepository } from "./IBaseRepository.ts"
-import type { db as database } from "../db.ts"
+import type { Database } from "../db.ts"
 
 export type Movement = typeof movement.$inferSelect
 type InsertMovement = typeof movement.$inferInsert
@@ -15,7 +15,7 @@ type ListMovementsOptions = {
 
 @injectable()
 export class MovementRepository implements IBaseRepository<Movement, InsertMovement> {
-  constructor(@inject("db") private db: typeof database) {}
+  constructor(@inject("db") private db: Database) {}
 
   async findById(id: string): Promise<Movement | null> {
     const rows = await this.db

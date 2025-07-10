@@ -30,6 +30,7 @@ export const courtArea = pgEnum("court_area", [
   "environmental",
   "corporate",
   "penal_execution",
+  "unknown",
 ])
 
 

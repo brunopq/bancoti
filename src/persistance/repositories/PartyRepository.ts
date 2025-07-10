@@ -2,14 +2,14 @@ import { inject, injectable } from "inversify"
 import { eq } from "drizzle-orm"
 import { party } from "../models/party.ts"
 import type { IBaseRepository } from "./IBaseRepository.ts"
-import type { db as database } from "../db.ts"
+import type { Database } from "../db.ts"
 
 type Party = typeof party.$inferSelect
 type InsertParty = typeof party.$inferInsert
 
 @injectable()
 export class PartyRepository implements IBaseRepository<Party, InsertParty> {
-  constructor(@inject("db") private db: typeof database) {}
+  constructor(@inject("db") private db: Database) {}
 
   async findById(id: string): Promise<Party | null> {
     const rows = await this.db.select().from(party).where(eq(party.id, id))

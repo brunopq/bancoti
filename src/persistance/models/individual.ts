@@ -15,3 +15,6 @@ export const individual = pgTable("individuals", {
   phones: text().array(),
   email: text(),
 })
+
+export type Individual = typeof individual.$inferSelect
+export type InsertIndividual = typeof individual.$inferInsert

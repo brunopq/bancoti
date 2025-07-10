@@ -6,7 +6,7 @@ import { JuditService } from "../../src/persistance/external/judit/juditService.
 import { JuditApiClient } from "../../src/persistance/external/judit/apiClient.ts"
 import * as dto from "../../src/persistance/external/judit/dto/index.ts"
 
-describe("JuditService", { only: true }, (t) => {
+describe("JuditService", (t) => {
   const clientMock = createStubInstance(JuditApiClient)
   const juditService = new JuditService(clientMock)
 

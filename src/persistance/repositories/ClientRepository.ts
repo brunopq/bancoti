@@ -2,7 +2,7 @@ import { inject, injectable } from "inversify"
 import { and, eq } from "drizzle-orm"
 
 import { client } from "../models/client.ts"
-import type { db as database } from "../db.ts"
+import type { Database } from "../db.ts"
 import type { IBaseRepository } from "./IBaseRepository.ts"
 import { individual } from "../models/individual.ts"
 import { legalEntity } from "../models/legalEntity.ts"
@@ -19,7 +19,7 @@ type FullClient =
 
 @injectable()
 export class ClientRepository implements IBaseRepository<Client, NewClient> {
-  constructor(@inject("db") private db: typeof database) {}
+  constructor(@inject("db") private db: Database) {}
 
   async findById(id: string): Promise<FullClient | null> {
     const [clientData] = await this.db
@@ -51,7 +51,7 @@ export class ClientRepository implements IBaseRepository<Client, NewClient> {
       return { ...clientData, ...legalEntityData, type: "legal_entity" }
     }
 
-      throw new Error(`Unknown client type: ${clientData.type}`)
+    throw new Error(`Unknown client type: ${clientData.type}`)
   }
 
   async findByCPF(cpf: string): Promise<Individual | null> {

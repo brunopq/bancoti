@@ -2,14 +2,14 @@ import { inject, injectable } from "inversify"
 import { eq } from "drizzle-orm"
 import { forum } from "../models/forum.ts"
 import type { IBaseRepository } from "./IBaseRepository.ts"
-import type { db as database } from "../db.ts"
+import type { Database } from "../db.ts"
 
 type Forum = typeof forum.$inferSelect
 type InsertForum = typeof forum.$inferInsert
 
 @injectable()
 export class ForumRepository implements IBaseRepository<Forum, InsertForum> {
-  constructor(@inject("db") private db: typeof database) {}
+  constructor(@inject("db") private db: Database) {}
 
   async findById(id: string): Promise<Forum | null> {
     const rows = await this.db.select().from(forum).where(eq(forum.id, id))

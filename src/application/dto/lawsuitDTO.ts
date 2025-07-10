@@ -1,9 +1,13 @@
 import { z } from "zod"
 
-import { lawsuitAreas } from "../../domain/entities/lawsuit.ts"
+import {
+  lawsuitAreas,
+  lawsuitInstances,
+} from "../../domain/entities/lawsuit.ts"
 import { movementDTO } from "./movementDTO.ts"
 
 const lawsuitArea = z.enum(lawsuitAreas)
+const lawsuitInstance = z.enum(lawsuitInstances)
 
 export const lawsuitDTO = z.object({
   id: z.string(),
@@ -12,6 +16,8 @@ export const lawsuitDTO = z.object({
   cnj: z.string(),
   status: z.string(),
   area: lawsuitArea,
+  subjects: z.array(z.string()),
+  instance: lawsuitInstance,
 })
 
 export const lawsuitWithMovementsDTO = lawsuitDTO.extend({

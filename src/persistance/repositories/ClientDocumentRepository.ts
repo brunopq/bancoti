@@ -1,16 +1,14 @@
 import { inject, injectable } from "inversify"
 import { clientDocument } from "../models/clientDocument.ts"
 import type { IBaseRepository } from "./IBaseRepository.ts"
-import type { db as database } from "../db.ts"
+import type { Database } from "../db.ts"
 import { eq } from "drizzle-orm"
 
 type ClientDocument = typeof clientDocument.$inferSelect
 
 @injectable()
-export class ClientDocumentRepository
-  implements IBaseRepository<ClientDocument>
-{
-  constructor(@inject("db") private db: typeof database) {}
+export class ClientDocumentRepository implements IBaseRepository<ClientDocument> {
+  constructor(@inject("db") private db: Database) {}
 
   async findById(id: string): Promise<ClientDocument | null> {
     const rows = await this.db

@@ -1,4 +1,4 @@
-import type { Lawsuit } from "../../domain/entities/lawsuit.ts"
+import type { Lawsuit } from "@/domain/entities/lawsuit.ts"
 import type { LawsuitDTO } from "../dto/lawsuitDTO.ts"
 
 import type { Mapper } from "./base.mapper.ts"

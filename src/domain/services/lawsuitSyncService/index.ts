@@ -2,14 +2,14 @@ import { injectable, inject } from "inversify"
 
 import type { Lawsuit } from "../../entities/lawsuit.ts"
 
-import { jAreaMapper } from "../../../persistance/external/judice/mappers/jAreaMapper.ts"
-import { jCourtAreaMapper } from "../../../persistance/external/judice/mappers/jCourtAreaMapper.ts"
+import { jAreaMapper } from "@/persistance/external/judice/mappers/jAreaMapper.ts"
+import { jCourtAreaMapper } from "@/persistance/external/judice/mappers/jCourtAreaMapper.ts"
 
-import { JudiceService } from "../../../persistance/external/judice/judiceService.ts"
-import { LawsuitRepository } from "../../../persistance/repositories/LawsuitRepository.ts"
-import { CourtRepository } from "../../../persistance/repositories/CourtRepository.ts"
-import { DistrictRepository } from "../../../persistance/repositories/DistrictRepository.ts"
-import { ForumRepository } from "../../../persistance/repositories/ForumRepository.ts"
+import { JudiceService } from "@/persistance/external/judice/judiceService.ts"
+import { LawsuitRepository } from "@/persistance/repositories/LawsuitRepository.ts"
+import { CourtRepository } from "@/persistance/repositories/CourtRepository.ts"
+import { DistrictRepository } from "@/persistance/repositories/DistrictRepository.ts"
+import { ForumRepository } from "@/persistance/repositories/ForumRepository.ts"
 
 @injectable()
 export class LawsuitSyncService {

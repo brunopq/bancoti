@@ -3,16 +3,16 @@ import { inject, injectable } from "inversify"
 import {
   InvalidArgumentException,
   NotFoundException,
-} from "../../../utils/exceptions/index.ts"
+} from "@/utils/exceptions/index.ts"
 
-import { LawsuitRepository } from "../../../persistance/repositories/LawsuitRepository.ts"
+import { LawsuitRepository } from "@/persistance/repositories/LawsuitRepository.ts"
 
-import type { Lawsuit, LawsuitWith } from "../../entities/lawsuit.ts"
-import type { PartyRole } from "../../entities/party.ts"
+import type { Lawsuit, LawsuitWith } from "@/domain/entities/lawsuit.ts"
+import type { PartyRole } from "@/domain/entities/party.ts"
 
-import { LawsuitSyncService } from "../lawsuitSyncService/index.ts"
-import { MovementSyncService } from "../movementSyncService/index.ts"
-import { MovementService } from "../movementService/index.ts"
+import { LawsuitSyncService } from "@/domain/services/lawsuitSyncService/index.ts"
+import { MovementSyncService } from "@/domain/services/movementSyncService/index.ts"
+import { MovementService } from "@/domain/services/movementService/index.ts"
 
 type LawsuitFilters = {
   clientId?: string

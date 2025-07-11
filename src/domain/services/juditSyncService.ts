@@ -1,37 +1,23 @@
 import { injectable, inject } from "inversify"
 
-import { JuditService } from "../../persistance/external/judit/juditService.ts"
-import { LawsuitRepository } from "../../persistance/repositories/LawsuitRepository.ts"
-import { TribunalRepository } from "../../persistance/repositories/TribunalRepository.ts"
-import { CourtRepository } from "../../persistance/repositories/CourtRepository.ts"
-import { LegalEntityRepository } from "../../persistance/repositories/LegalEntityRepository.ts"
-import { IndividualRepository } from "../../persistance/repositories/IndividualRepository.ts"
-import { PartyRepository } from "../../persistance/repositories/PartyRepository.ts"
-import { SubjectRepository } from "../../persistance/repositories/SubjectRepository.ts"
-import { MovementRepository } from "../../persistance/repositories/MovementRepository.ts"
+import { JuditService } from "@/persistance/external/judit/juditService.ts"
+import { LawsuitRepository } from "@/persistance/repositories/LawsuitRepository.ts"
+import { TribunalRepository } from "@/persistance/repositories/TribunalRepository.ts"
+import { CourtRepository } from "@/persistance/repositories/CourtRepository.ts"
+import { LegalEntityRepository } from "@/persistance/repositories/LegalEntityRepository.ts"
+import { IndividualRepository } from "@/persistance/repositories/IndividualRepository.ts"
+import { PartyRepository } from "@/persistance/repositories/PartyRepository.ts"
+import { SubjectRepository } from "@/persistance/repositories/SubjectRepository.ts"
+import { MovementRepository } from "@/persistance/repositories/MovementRepository.ts"
 
-import type {
-  InsertLawsuit,
-  Lawsuit,
-} from "../../persistance/models/lawsuit.ts"
-import type { InsertCourt, Court } from "../../persistance/models/court.ts"
-import type {
-  InsertTribunal,
-  Tribunal,
-} from "../../persistance/models/tribunal.ts"
-import type { Party, InsertParty } from "../../persistance/models/party.ts"
-import type { EntityType } from "../../persistance/models/enums.ts"
-import type {
-  InsertSubject,
-  Subject,
-} from "../../persistance/models/subject.ts"
-import type { InsertMovement } from "../../persistance/models/movement.ts"
-import type { JuditParty } from "../../persistance/external/judit/dto/index.ts"
-import type {
-  InsertLegalEntity,
-  LegalEntity,
-} from "../../persistance/models/legalEntity.ts"
-import type { Individual } from "../../persistance/models/individual.ts"
+import type { Lawsuit } from "@/persistance/models/lawsuit.ts"
+import type { InsertCourt, Court } from "@/persistance/models/court.ts"
+import type { Party } from "@/persistance/models/party.ts"
+import type { EntityType } from "@/persistance/models/enums.ts"
+import type { InsertSubject, Subject } from "@/persistance/models/subject.ts"
+import type { JuditParty } from "@/persistance/external/judit/dto/index.ts"
+import type { LegalEntity } from "@/persistance/models/legalEntity.ts"
+import type { Individual } from "@/persistance/models/individual.ts"
 
 const juditLawsuitInstanceMapper = {
   toModel: (instance: number | undefined): Lawsuit["instance"] => {

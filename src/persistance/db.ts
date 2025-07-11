@@ -2,9 +2,9 @@ import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres"
 import { migrate } from "drizzle-orm/node-postgres/migrator"
 import { Pool } from "pg"
 
-import { env } from "../utils/env.ts"
+import { env } from "@/utils/env.ts"
 
-import { container } from "../dependencyManager.ts"
+import { container } from "@/dependencyManager.ts"
 
 import * as models from "./models/index.ts"
 

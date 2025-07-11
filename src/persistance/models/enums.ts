@@ -1,9 +1,6 @@
 import { pgEnum } from "drizzle-orm/pg-core"
 
-import {
-  lawsuitAreas,
-  lawsuitInstances,
-} from "../../domain/entities/lawsuit.ts"
+import { lawsuitAreas, lawsuitInstances } from "@/domain/entities/lawsuit.ts"
 
 export const partRole = pgEnum("part_role", ["author", "defendant"])
 export const entityType = pgEnum("part_type", ["individual", "legal_entity"])

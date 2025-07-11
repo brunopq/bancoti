@@ -1,6 +1,6 @@
 import type { z } from "zod"
 
-import type { Lawsuit } from "../../../../domain/entities/lawsuit.ts"
+import type { Lawsuit } from "@/domain/entities/lawsuit.ts"
 
 import type { consultaProcessoResponseSchema } from "../dto/index.ts"
 import type { JMapper } from "./baseJMapper.ts"

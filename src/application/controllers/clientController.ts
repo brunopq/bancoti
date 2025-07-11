@@ -4,10 +4,10 @@ import { describeRoute } from "hono-openapi"
 import { resolver } from "hono-openapi/zod"
 import { zValidator } from "@hono/zod-validator"
 
-import { container } from "../../dependencyManager.ts"
-import { ClientService } from "../../domain/services/clientService/index.ts"
+import { container } from "@/dependencyManager.ts"
+import { ClientService } from "@/domain/services/clientService/index.ts"
 import { ClientDTO, ClientDTOArray } from "../dto/clientDTO.ts"
-import type { Client } from "../../domain/entities/client.ts"
+import type { Client } from "@/domain/entities/client.ts"
 
 export const clientController = new Hono()
 const clientService = container.get(ClientService)

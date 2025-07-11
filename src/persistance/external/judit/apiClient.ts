@@ -7,7 +7,7 @@ import {
 } from "@ts-rest/core"
 import { inject, injectable } from "inversify"
 
-import { env } from "../../../utils/env.ts"
+import { env } from "@/utils/env.ts"
 import { requestsRouter, trackingRouter } from "./apiContract.ts"
 import { LoggerClient } from "./loggerClient.ts"
 

@@ -1,5 +1,6 @@
 import { injectable } from "inversify"
-import type { ICacheService } from "../../domain/services/ICacheService.ts"
+
+import type { ICacheService } from "@/domain/services/ICacheService.ts"
 
 @injectable()
 export class InMemoryCacheService<TKey, TValue>

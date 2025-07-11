@@ -1,15 +1,15 @@
 import { inject, injectable } from "inversify"
 import { eq, desc } from "drizzle-orm"
 
-import type { db as database } from "../../db.ts"
-import { apiCalls } from "../../models/judit/index.ts"
+import type { Database } from "@/persistance/db.ts"
+import { apiCalls } from "@/persistance/models/judit/index.ts"
 
 type ApiCall = typeof apiCalls.$inferSelect
 type InsertApiCall = typeof apiCalls.$inferInsert
 
 @injectable()
 export class ApiCallsRepository {
-  constructor(@inject("db") private db: typeof database) {}
+  constructor(@inject("db") private db: Database) {}
 
   async findById(id: number): Promise<ApiCall | null> {
     const rows = await this.db

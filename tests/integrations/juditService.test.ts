@@ -1,10 +1,9 @@
-import { describe, it, before } from "node:test"
+import { describe, it } from "node:test"
 import assert from "node:assert"
-import { stub, createStubInstance, useFakeTimers } from "sinon"
+import { createStubInstance } from "sinon"
 
-import { JuditService } from "../../src/persistance/external/judit/juditService.ts"
-import { JuditApiClient } from "../../src/persistance/external/judit/apiClient.ts"
-import * as dto from "../../src/persistance/external/judit/dto/index.ts"
+import { JuditService } from "@/persistance/external/judit/juditService.ts"
+import { JuditApiClient } from "@/persistance/external/judit/apiClient.ts"
 
 describe("JuditService", (t) => {
   const clientMock = createStubInstance(JuditApiClient)

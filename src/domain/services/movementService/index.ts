@@ -3,8 +3,8 @@ import { injectable, inject } from "inversify"
 import {
   MovementRepository,
   type Movement as PersistantMovement,
-} from "../../../persistance/repositories/MovementRepository.ts"
-import { LawsuitRepository } from "../../../persistance/repositories/LawsuitRepository.ts"
+} from "@/persistance/repositories/MovementRepository.ts"
+import { LawsuitRepository } from "@/persistance/repositories/LawsuitRepository.ts"
 
 import type { Movement } from "../../entities/movement.ts"
 import { MovementSyncService } from "../movementSyncService/index.ts"

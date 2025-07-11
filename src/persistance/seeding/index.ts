@@ -1,4 +1,4 @@
-import { container } from "../../dependencyManager.ts"
+import { container } from "@/dependencyManager.ts"
 
 import { ClientRepository } from "../repositories/ClientRepository.ts"
 import { CourtRepository } from "../repositories/CourtRepository.ts"

@@ -1,8 +1,8 @@
 import { inject, injectable } from "inversify"
 
-import { MovementRepository } from "../../../persistance/repositories/MovementRepository.ts"
-import { JudiceService } from "../../../persistance/external/judice/judiceService.ts"
-import { LawsuitRepository } from "../../../persistance/repositories/LawsuitRepository.ts"
+import { MovementRepository } from "@/persistance/repositories/MovementRepository.ts"
+import { JudiceService } from "@/persistance/external/judice/judiceService.ts"
+import { LawsuitRepository } from "@/persistance/repositories/LawsuitRepository.ts"
 
 @injectable()
 export class MovementSyncService {

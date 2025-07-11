@@ -6,9 +6,7 @@ import type {
   listaAndamentosResponseSchema,
   consultaProcessoResponseSchema,
 } from "./dto/index.ts"
-import type { ICacheService } from "../../../domain/services/ICacheService.ts"
-
-import type { Lawsuit } from "../../../domain/entities/lawsuit.ts"
+import type { ICacheService } from "@/domain/services/ICacheService.ts"
 
 type JudiceMovementDTO = z.infer<
   typeof listaAndamentosResponseSchema

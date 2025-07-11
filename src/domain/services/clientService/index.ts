@@ -1,8 +1,8 @@
 import { inject, injectable } from "inversify"
 
-import { ClientRepository } from "../../../persistance/repositories/ClientRepository.ts"
+import { ClientRepository } from "@/persistance/repositories/ClientRepository.ts"
 
-import type { Client, Individual, Company } from "../../entities/client.ts"
+import type { Client, Individual, Company } from "@/domain/entities/client.ts"
 
 @injectable()
 export class ClientService {

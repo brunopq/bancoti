@@ -4,16 +4,16 @@ import { resolver } from "hono-openapi/zod"
 import { z } from "zod"
 import { describeRoute } from "hono-openapi"
 
-import { container } from "../../dependencyManager.ts"
+import { container } from "@/dependencyManager.ts"
 
-import { LawsuitService } from "../../domain/services/lawsuitService/index.ts"
+import { LawsuitService } from "@/domain/services/lawsuitService/index.ts"
 import {
   listLawsuitsResponse,
   findLawsuitByCNJResponse,
   type ListLawsuitsResponse,
 } from "../dto/lawsuitDTO.ts"
 import { lawsuitMapper } from "../mappers/lawsuit.mapper.ts"
-import { PartyRoleSchema } from "../../domain/entities/party.ts"
+import { PartyRoleSchema } from "@/domain/entities/party.ts"
 
 export const lawsuitController = new Hono()
 

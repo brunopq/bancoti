@@ -1,10 +1,12 @@
 import { inject, injectable } from "inversify"
 import { and, eq, inArray } from "drizzle-orm"
-import { lawsuit, type Lawsuit, type InsertLawsuit } from "../models/lawsuit.ts"
-import type { IBaseRepository } from "./IBaseRepository.ts"
+
 import type { Database } from "../db.ts"
 
+import type { IBaseRepository } from "./IBaseRepository.ts"
+
 import type { PartyRole } from "../models/enums.ts"
+import { lawsuit, type Lawsuit, type InsertLawsuit } from "../models/lawsuit.ts"
 import { client } from "../models/client.ts"
 import { party } from "../models/party.ts"
 import { subject } from "../models/subject.ts"

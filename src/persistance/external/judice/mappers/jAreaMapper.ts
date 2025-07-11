@@ -1,4 +1,4 @@
-import type { LawsuitArea } from "../../../../domain/entities/lawsuit.ts"
+import type { LawsuitArea } from "@/domain/entities/lawsuit.ts"
 
 import type { JMapper } from "./baseJMapper.ts"
 

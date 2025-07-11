@@ -2,9 +2,9 @@ import { initContract, initClient, type ApiFetcherArgs } from "@ts-rest/core"
 import { z } from "zod"
 import JSON5 from "json5"
 
-import { container } from "../../../dependencyManager.ts"
+import { container } from "@/dependencyManager.ts"
 
-import { env } from "../../../utils/env.ts"
+import { env } from "@/utils/env.ts"
 
 import * as dto from "./dto/index.ts"
 

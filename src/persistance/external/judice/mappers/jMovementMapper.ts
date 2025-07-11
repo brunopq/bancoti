@@ -1,6 +1,6 @@
 import type { JMapper } from "./baseJMapper.ts"
 
-import type { Movement } from "../../../../domain/entities/movement.ts"
+import type { Movement } from "@/domain/entities/movement.ts"
 
 import type { listaAndamentosResponseSchema } from "../dto/index.ts"
 import type { z } from "zod"

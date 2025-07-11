@@ -1,6 +1,6 @@
 import { inject, injectable } from "inversify"
 
-import { delay } from "../../../utils/delay.ts"
+import { delay } from "@/utils/delay.ts"
 
 import { JuditApiClient } from "./apiClient.ts"
 

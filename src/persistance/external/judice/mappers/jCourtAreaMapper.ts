@@ -1,6 +1,6 @@
 import type { JMapper } from "./baseJMapper.ts"
 
-import type { CourtArea } from "../../../models/enums.ts"
+import type { CourtArea } from "@/persistance/models/enums.ts"
 
 export const jCourtAreaMapper: JMapper<string, CourtArea> = {
   toDomain: (j: string): CourtArea => {

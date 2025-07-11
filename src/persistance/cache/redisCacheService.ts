@@ -1,7 +1,9 @@
 import { injectable } from "inversify"
 import { createClient, type RedisClientType } from "redis"
-import type { ICacheService } from "../../domain/services/ICacheService.ts"
-import { env } from "../../utils/env.ts"
+
+import { env } from "@/utils/env.ts"
+
+import type { ICacheService } from "@/domain/services/ICacheService.ts"
 
 @injectable()
 export class RedisCacheService<TKey, TValue>

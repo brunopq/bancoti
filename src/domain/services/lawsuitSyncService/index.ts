@@ -10,6 +10,7 @@ import { LawsuitRepository } from "@/persistance/repositories/LawsuitRepository.
 import { CourtRepository } from "@/persistance/repositories/CourtRepository.ts"
 import { DistrictRepository } from "@/persistance/repositories/DistrictRepository.ts"
 import { ForumRepository } from "@/persistance/repositories/ForumRepository.ts"
+import { SubjectRepository } from "@/persistance/repositories/SubjectRepository.ts"
 
 @injectable()
 export class LawsuitSyncService {
@@ -23,6 +24,8 @@ export class LawsuitSyncService {
     private readonly districtRepository: DistrictRepository,
     @inject(ForumRepository)
     private readonly forumRepository: ForumRepository,
+    @inject(SubjectRepository)
+    private readonly subjectRepository: SubjectRepository,
   ) {}
 
   /**
@@ -41,10 +44,19 @@ export class LawsuitSyncService {
 
     if (dbLawsuit) {
       // biome-ignore lint/style/noNonNullAssertion: if we have the lawsuit this should not be null
-      return (await this.lawsuitRepository.update(dbLawsuit.id, {
+      const updated = (await this.lawsuitRepository.update(dbLawsuit.id, {
         area: jAreaMapper.toDomain(lawsuit.area.nome),
         status: lawsuit.fase_processual.nome,
       }))!
+
+      const subjects = await this.subjectRepository.findByIds(
+        updated?.subjectsIds || [],
+      )
+
+      return {
+        ...updated,
+        subjects: subjects.map((s) => s.name),
+      }
     }
 
     let courtId: string | null = null
@@ -86,24 +98,27 @@ export class LawsuitSyncService {
         court = await this.courtRepository.create({
           name: lawsuit.cartorio.nome,
           forumId: forum.id,
-          abbreviation: lawsuit.cartorio.nome
-            .split(" ")
-            .map((w) => w[0])
-            .join(""),
           area: jCourtAreaMapper.toDomain(lawsuit.area.nome),
         })
       }
 
-      console.log("Court found or created:", court.name, court.abbreviation)
+      console.log("Court found or created:", court.name)
 
       courtId = court.id
     }
 
-    return await this.lawsuitRepository.create({
+    const createdLawsuit = await this.lawsuitRepository.create({
       cnj: lawsuit.cnj,
+      instance: "first", // TODO: judice does not provide instance, so we default to 'first'
+      subjectsIds: [],
       area: jAreaMapper.toDomain(lawsuit.area.nome),
       status: lawsuit.fase_processual.nome,
-      courtId,
+      courtsIds: courtId ? [courtId] : [],
     })
+
+    return {
+      ...createdLawsuit,
+      subjects: [],
+    }
   }
 }

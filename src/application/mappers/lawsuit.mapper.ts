@@ -12,7 +12,7 @@ export const lawsuitMapper: Mapper<Lawsuit, LawsuitDTO> = {
     updatedAt: new Date(dto.updatedAt),
     status: dto.status,
     movements: [],
-    courtId: null,
+    courtsIds: [],
     instance: dto.instance,
     subjects: dto.subjects,
   }),

@@ -8,9 +8,7 @@ type Subject = typeof subject.$inferSelect
 type InsertSubject = typeof subject.$inferInsert
 
 @injectable()
-export class SubjectRepository
-  implements IBaseRepository<Subject, InsertSubject>
-{
+export class SubjectRepository implements IBaseRepository<Subject, InsertSubject> {
   constructor(@inject("db") private db: Database) {}
 
   async findById(id: string): Promise<Subject | null> {
@@ -18,6 +16,12 @@ export class SubjectRepository
       where: (s, { eq }) => eq(s.id, id),
     })
     return result ?? null
+  }
+
+  async findByIds(ids: string[]): Promise<Subject[]> {
+    return this.db.query.subject.findMany({
+      where: (s, { inArray }) => inArray(s.id, ids),
+    })
   }
 
   async findAll(): Promise<Subject[]> {

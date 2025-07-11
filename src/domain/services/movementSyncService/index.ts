@@ -51,6 +51,7 @@ export class MovementSyncService {
           const mov = await this.movementRepository.create({
             createdAt: new Date(jMov.dta),
             updatedAt: new Date(jMov.lastupdate),
+            dispatchDate: new Date(jMov.data_ajuizamento),
             lawsuitId: lawsuit?.id,
             lawsuitCnj: jMov.cnj,
             _judiceId: jMov.id,

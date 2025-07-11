@@ -39,21 +39,18 @@ export class LawsuitService {
       )
     }
 
-    return this.lawsuitRepository.findAll(filters)
+    return this.lawsuitRepository.findAllDomain(filters)
   }
 
-  async getById(id: string): Promise<Lawsuit | LawsuitWith<"movements">> {
-    const lawsuit = await this.lawsuitRepository.findById(id)
+  async getById(id: string): Promise<LawsuitWith<"movements">> {
+    const lawsuit = await this.lawsuitRepository.findByIdDomain(id)
 
     if (!lawsuit) {
       throw new NotFoundException(`Lawsuit with id "${id}" not found.`)
     }
 
-    const movements = await this.movementService.listByLawsuitId(lawsuit.id)
-
     return {
       ...lawsuit,
-      movements,
     }
   }
 

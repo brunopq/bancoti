@@ -27,12 +27,12 @@ export type Lawsuit = {
   area: LawsuitArea
   instance: LawsuitInstance
   subjects: string[]
-  courtId: string | null
+  courtsIds: string[]
 }
 
-type LawsuitRelations = {
+export type LawsuitRelations = {
   movements: Movement[]
-  court: Court
+  courts: Court[]
 }
 
 export type LawsuitWith<T extends keyof LawsuitRelations> = Lawsuit &

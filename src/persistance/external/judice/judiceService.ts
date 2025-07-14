@@ -5,6 +5,8 @@ import { apiClient } from "./apiClient.ts"
 import type {
   listaAndamentosResponseSchema,
   consultaProcessoResponseSchema,
+  listaClientesResponseSchema,
+  consultaClienteResponseSchema,
 } from "./dto/index.ts"
 import type { ICacheService } from "@/domain/services/ICacheService.ts"
 
@@ -16,6 +18,14 @@ type JudiceLawsuitDTO = z.infer<
   typeof consultaProcessoResponseSchema
 >["retorno"]["object"][number]
 
+type JudiceListClientsDTO = z.infer<
+  typeof listaClientesResponseSchema
+>["retorno"]["object"][number]
+
+type JudiceClientDTO = z.infer<
+  typeof consultaClienteResponseSchema
+>["retorno"]["object"]
+
 type ListMovementsOptions = {
   startFrom?: number
   clientView?: boolean
@@ -24,6 +34,7 @@ type ListMovementsOptions = {
 interface IJudiceService {
   getLawsuitByCNJ(cnj: string): Promise<JudiceLawsuitDTO>
   listMovements(options?: ListMovementsOptions): Promise<JudiceMovementDTO[]>
+  listClients(): Promise<JudiceListClientsDTO[]>
 }
 
 @injectable()
@@ -92,6 +103,39 @@ export class JudiceService implements IJudiceService {
     if (status !== 200)
       throw new Error(
         `Failed to fetch movements, judice responded with code ${status}`,
+      )
+
+    if (!body.retorno.success)
+      throw new Error(`Judice API error: ${body.retorno.message}`)
+
+    return body.retorno.object
+  }
+
+  async listClients(options?: { startFrom?: number }): Promise<
+    JudiceListClientsDTO[]
+  > {
+    const { body, status } = await this.api.listaClientes({
+      body: { action: "list", id: options?.startFrom ?? 0 },
+    })
+
+    if (status !== 200)
+      throw new Error(
+        `Failed to fetch clients, judice responded with code ${status}`,
+      )
+
+    if (!body.success) throw new Error(`Judice API error: ${body.message}`)
+
+    return body.retorno.object
+  }
+
+  async getClientById(id: number): Promise<JudiceClientDTO> {
+    const { body, status } = await this.api.consultaCliente({
+      body: { action: "get", id },
+    })
+
+    if (status !== 200)
+      throw new Error(
+        `Failed to fetch client with ID ${id}, judice responded with code ${status}`,
       )
 
     if (!body.retorno.success)

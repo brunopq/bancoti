@@ -78,6 +78,15 @@ export class ClientRepository implements IBaseRepository<Client, NewClient> {
     return { ...clients, ...legal_entities }
   }
 
+  async findByEntity(entityId: string): Promise<Client | null> {
+    const rows = await this.db
+      .select()
+      .from(client)
+      .where(eq(client.entityId, entityId))
+
+    return rows[0] ?? null
+  }
+
   async findAll(): Promise<Client[]> {
     throw new Error("Method not implemented.")
     // return this.db.select().from(client)

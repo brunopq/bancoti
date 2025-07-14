@@ -12,6 +12,7 @@ import { db } from "./persistance/db.ts"
 // import { judiceController } from "./application/controllers/judiceController.ts"
 import { clientController } from "./application/controllers/clientController.ts"
 import { lawsuitController } from "./application/controllers/lawsuitController.ts"
+import "./application/cron/index.ts"
 
 const app = new Hono()
 app.use(logger())
@@ -54,6 +55,6 @@ app.route("/clients", clientController)
 app.route("/lawsuits", lawsuitController)
 
 showRoutes(app, { colorize: true })
-serve({ fetch: app.fetch, port: 3000 }, (info) => {
+serve({ fetch: app.fetch, port: 3002 }, (info) => {
   console.log(`Server is running on http://localhost:${info.port} 🔥`)
 })

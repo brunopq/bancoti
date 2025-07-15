@@ -9,4 +9,5 @@ const container = new Container({
 
 container.bind("CacheService").to(RedisCacheService)
 
+
 export { container }

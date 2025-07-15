@@ -128,7 +128,7 @@ export class JudiceService implements IJudiceService {
     return body.retorno.object
   }
 
-  async getClientById(id: number): Promise<JudiceClientDTO> {
+  async getClientById(id: number): Promise<JudiceClientDTO[number]> {
     const { body, status } = await this.api.consultaCliente({
       body: { action: "get", id },
     })
@@ -138,9 +138,11 @@ export class JudiceService implements IJudiceService {
         `Failed to fetch client with ID ${id}, judice responded with code ${status}`,
       )
 
-    if (!body.retorno.success)
-      throw new Error(`Judice API error: ${body.retorno.message}`)
+    if (!body.success) throw new Error(`Judice API error: ${body.message}`)
 
-    return body.retorno.object
+    if (body.retorno.object.length === 0)
+      throw new Error(`Client with ID ${id} not found`)
+
+    return body.retorno.object[0]
   }
 }

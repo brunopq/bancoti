@@ -7,6 +7,7 @@ import { env } from "@/utils/env.ts"
 import { container } from "@/dependencyManager.ts"
 
 import * as models from "./models/index.ts"
+import { sql } from "drizzle-orm"
 
 const pool = new Pool({
   connectionString: env.DB_URL,
@@ -17,6 +18,7 @@ export const db = drizzle({
   casing: "snake_case",
 })
 
+await db.execute(sql`CREATE EXTENSION IF NOT EXISTS unaccent`)
 
 export type Database = NodePgDatabase<typeof models>
 

@@ -383,33 +383,36 @@ export const listaClientesResponseSchema = wrongResponseSchema(
   ),
 )
 
-export const consultaClienteResponseSchema = makeResponseSchema(
-  z.object({
-    id: z.number(),
-    tipo: z.string(), // Pessoa física ou jurídica
-    nome: z.string(),
-    alcunha_nomefantasia: z.string(),
-    grupos: z.array(z.any()), // não documentado
-    segment: z.string(),
-    cpf_cnpj: z.string(),
-    rg: z.string().optional(),
-    ie: z.string().optional(),
-    nascimento: z.string().optional(), // data de nascimento
-    cep: z.string(),
-    endereco: z.string(),
-    numero: z.string(),
-    complemento: z.string().optional(),
-    bairro: z.string(),
-    cidade: z.string(),
-    uf: z.string(),
-    nacionalidade: z.string(),
-    profissao: z.string(),
-    aposentado: z.string(), // string????
-    email: z.string(),
-    fone: z.string(),
-    comercial: z.string(),
-    celular: z.string(),
-  }),
+export const consultaClienteResponseSchema = wrongResponseSchema(
+  z.array(
+    z.object({
+      id: z.number(),
+      tipo: z.string().nullish(), // Pessoa física ou jurídica, valores conhecidos: 'fisica', 'juridica'
+      nome: z.string(),
+      alcunha_nomefantasia: z.string().nullish(),
+      grupos: z.array(z.any()), // não documentado
+      segment: z.string().nullish(),
+      representante: z.string().nullish(),
+      cpf_cnpj: z.string(),
+      rg: z.string().nullish(),
+      ie: z.string().nullish(),
+      nascimento: z.string().nullish(), // data de nascimento
+      cep: z.string().nullish(),
+      endereco: z.string().nullish(),
+      numero: z.string().nullish(),
+      complemento: z.string().nullish(),
+      bairro: z.string().nullish(),
+      cidade: z.string().nullish(),
+      uf: z.number().nullish(), // judice id, not a string
+      nacionalidade: z.string().nullish(),
+      profissao: z.string().nullish(),
+      aposentado: z.string().nullish(), // string????
+      email: z.string().nullish(),
+      fone: z.string().nullish(),
+      comercial: z.string().nullish(),
+      celular: z.string().nullish(),
+    }),
+  ),
 )
 
 export const listaPartesResponseSchema = wrongWithIntResponseSchema(

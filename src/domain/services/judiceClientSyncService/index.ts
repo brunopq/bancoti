@@ -1,34 +1,13 @@
 import { injectable, inject } from "inversify"
-import { pino } from "pino"
+
+import { LoggerFactory } from "@/utils/LoggerProvider.ts"
 
 import { JudiceService } from "@/persistance/external/judice/judiceService.ts"
 import { ClientRepository } from "@/persistance/repositories/ClientRepository.ts"
 import { IndividualRepository } from "@/persistance/repositories/IndividualRepository.ts"
 import { LegalEntityRepository } from "@/persistance/repositories/LegalEntityRepository.ts"
+import "@/persistance/db.ts" // Ensure DB is initialized
 
-const logger = pino({
-  level: process.env.LOG_LEVEL || "info",
-  base: undefined, // Removes pid and hostname
-  transport: {
-    targets: [
-      {
-        target: "pino-pretty",
-        level: "info",
-        options: { colorize: true },
-      },
-      {
-        target: "pino-loki",
-        level: "info",
-        options: {
-          batching: true,
-          interval: 5,
-          host: "http://localhost:3100", // Your Loki server
-          labels: { app: "bancoti", component: "judice-sync" },
-        },
-      },
-    ],
-  },
-})
 
 @injectable()
 export class JudiceClientSyncService {
@@ -41,6 +20,7 @@ export class JudiceClientSyncService {
     private readonly individualRepository: IndividualRepository,
     @inject(LegalEntityRepository)
     private readonly legalEntityRepository: LegalEntityRepository,
+    private readonly logger = LoggerFactory("JudiceClientSyncService"),
   ) {}
 
   private getDocumentType(document: string): "cpf" | "cnpj" | undefined {
@@ -52,25 +32,31 @@ export class JudiceClientSyncService {
     )[document.replaceAll(/\D/g, "").length]
   }
 
-  private async syncClientByJid(jid: number): Promise<void> {
+  private async syncClientByJid(
+    jid: number,
+    logger = this.logger,
+  ): Promise<void> {
+    logger.info({ jid }, "Syncing client by JID")
     const client = await this.judiceService.getClientById(jid)
+    logger.info({ client }, "Fetched client from Judice")
 
     if (!client) {
       // should not happen btw
-      console.warn(`Client with ID ${jid} not found in Judice, skipping.`)
+      logger.warn({ jid }, "Client not found in Judice, skipping sync.")
       return
     }
 
     if (!client.cpf_cnpj) {
-      console.warn(`Client with ID ${client.id} has no CPF/CNPJ, skipping.`)
+      logger.warn({ jid: client.id }, "Client has no CPF/CNPJ, skipping sync.")
       return
     }
 
     const documentType = this.getDocumentType(client.cpf_cnpj)
 
     if (!documentType) {
-      console.warn(
-        `Client with ID ${client.id} has invalid CPF/CNPJ, skipping.`,
+      logger.warn(
+        { jid: client.id, cpf_cnpj: client.cpf_cnpj },
+        "Client has invalid CPF/CNPJ, skipping sync.",
       )
       return
     }
@@ -83,21 +69,35 @@ export class JudiceClientSyncService {
         name: client.nome,
         cpf: client.cpf_cnpj,
         email: client.email,
-        phones: [client.fone, client.celular, client.comercial].filter(Boolean),
+        phones: [client.fone, client.celular, client.comercial].filter(
+          (p) => typeof p === "string",
+        ),
         birthDate: client.nascimento ? new Date(client.nascimento) : undefined,
       })
 
       entityId = individual.id
       entityType = "individual"
+
+      logger.info({ individualId: entityId, jid }, "Synced individual client")
     } else {
       const legalEntity = await this.legalEntityRepository.sync({
         cnpj: client.cpf_cnpj,
-        corporateName: client.alcunha_nomefantasia,
+        corporateName: client.alcunha_nomefantasia || client.nome,
       })
 
       entityId = legalEntity.id
       entityType = "legal_entity"
+
+      logger.info(
+        { legalEntityId: entityId, jid },
+        "Synced legal entity client",
+      )
     }
+
+    logger.info(
+      { jid: client.id, entityId, entityType },
+      "Syncing client to database",
+    )
 
     let dbClient = await this.clientRepository.findByEntity(entityId)
 
@@ -107,20 +107,28 @@ export class JudiceClientSyncService {
         type: entityType,
         jid,
       })
+      logger.info({ dbClient }, "Created new client in database")
     }
-
-    console.log(`Created client ${dbClient.id} (${entityType})`)
   }
 
   async sync(): Promise<void> {
     const syncId = new Date().toISOString()
-    const syncLogger = logger.child({ syncId })
+    const syncLogger = this.logger.child({ syncId })
+
     syncLogger.info({ event: "Sync start" }, "Syncing clients from Judice...")
     const clients = await this.judiceService.listClients()
     syncLogger.info({ count: clients.length }, "Fetched clients from Judice")
 
-    for (const client of clients) {
-      this.syncClientByJid(client.id)
+    // await Promise.allSettled(
+    //   clients.map((c) => this.syncClientByJid(c.id, syncLogger)),
+    // )
+
+    for (const c of clients) {
+      try {
+        await this.syncClientByJid(c.id, syncLogger)
+      } catch (error) {
+        syncLogger.error({ error, clientId: c.id }, "Failed to sync client")
+      }
     }
   }
 }

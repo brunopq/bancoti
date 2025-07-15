@@ -1,21 +1,20 @@
-import { describe, it, before } from "node:test"
+import { describe, it } from "node:test"
 import assert from "node:assert"
 
 import { apiClient } from "@/persistance/external/judice/apiClient.ts"
 import * as dto from "@/persistance/external/judice/dto/index.ts"
 
-describe("Judice API Client", () => {
-  let client: typeof apiClient
+import { JudiceClientSyncService } from "@/domain/services/judiceClientSyncService/index.ts"
+import { container } from "@/dependencyManager.ts"
 
-  before(() => {
-    client = apiClient
-  })
+describe("Judice API Client", () => {
+  const client = apiClient
 
   it("should be defined", () => {
     assert.ok(client)
   })
 
-  it("should list case updates", { only: false }, async () => {
+  it("should list case updates", async () => {
     const res = await client.listaAndamentos({
       body: { action: "list", date_ini: "2025-04-05", date_fim: "2025-04-05" },
     })
@@ -24,7 +23,7 @@ describe("Judice API Client", () => {
     assert.strictEqual(parsed.retorno.success, true)
   })
 
-  it("should list lawsuits", { only: false }, async () => {
+  it("should list lawsuits", async () => {
     const res = await client.listaProcessos({
       body: { action: "list", limit: 200 },
     })
@@ -33,7 +32,7 @@ describe("Judice API Client", () => {
     assert.strictEqual(parsed.success, true)
   })
 
-  it("should get lawsuit details", { only: false }, async () => {
+  it("should get lawsuit details", async () => {
     const res = await client.consultaProcesso({
       body: { action: "get", id: 552676 },
     })
@@ -42,7 +41,7 @@ describe("Judice API Client", () => {
     assert.strictEqual(parsed.success, true)
   })
 
-  it("should list linked lawsuits", { only: false }, async () => {
+  it("should list linked lawsuits", async () => {
     const res = await client.listaProcessosVinculados({
       body: { action: "listVinculados" },
     })
@@ -51,7 +50,7 @@ describe("Judice API Client", () => {
     assert.strictEqual(parsed.success, true)
   })
 
-  it("should list all lawsuits", { only: false }, async () => {
+  it("should list all lawsuits", async () => {
     const res = await client.listaTodosProcessos({
       body: { action: "listacnj", limit: 100 },
     })
@@ -60,56 +59,56 @@ describe("Judice API Client", () => {
     assert.strictEqual(parsed.success, true)
   })
 
-  it("should list action types", { only: false }, async () => {
+  it("should list action types", async () => {
     const res = await client.listaTipoDeAcao({ body: { action: "list" } })
     assert.strictEqual(res.status, 200)
     const parsed = dto.listaTipoDeAcaoResponseSchema.parse(res.body)
     assert.strictEqual(parsed.retorno.success, true)
   })
 
-  it("should list forums", { only: false }, async () => {
+  it("should list forums", async () => {
     const res = await client.listaForuns({ body: { action: "list" } })
     assert.strictEqual(res.status, 200)
     const parsed = dto.listaForunsResponseSchema.parse(res.body)
     assert.strictEqual(parsed.retorno.success, true)
   })
 
-  it("should list courts", { only: false }, async () => {
+  it("should list courts", async () => {
     const res = await client.listTribunais({ body: { action: "list" } })
     assert.strictEqual(res.status, 200)
     const parsed = dto.listTribunaisResponseSchema.parse(res.body)
     assert.strictEqual(parsed.retorno.success, true)
   })
 
-  it("should list judicial divisions", { only: false }, async () => {
+  it("should list judicial divisions", async () => {
     const res = await client.listaVaras({ body: { action: "list" } })
     assert.strictEqual(res.status, 200)
     const parsed = dto.listaVarasResponseSchema.parse(res.body)
     assert.strictEqual(parsed.retorno.success, true)
   })
 
-  it("should list cities", { only: false }, async () => {
+  it("should list cities", async () => {
     const res = await client.listaCidades({ body: { action: "list" } })
     assert.strictEqual(res.status, 200)
     const parsed = dto.listaCidadesResponseSchema.parse(res.body)
     assert.strictEqual(parsed.retorno.success, true)
   })
 
-  it("should list legal areas", { only: false }, async () => {
+  it("should list legal areas", async () => {
     const res = await client.listaAreas({ body: { action: "list" } })
     assert.strictEqual(res.status, 200)
     const parsed = dto.listaAreasResponseSchema.parse(res.body)
     assert.strictEqual(parsed.retorno.success, true)
   })
 
-  it("should list system types", { only: false }, async () => {
+  it("should list system types", async () => {
     const res = await client.listaTiposDeSistema({ body: { action: "list" } })
     assert.strictEqual(res.status, 200)
     const parsed = dto.listaTiposDeSistemaResponseSchema.parse(res.body)
     assert.strictEqual(parsed.retorno.success, true)
   })
 
-  it("should list clients", { only: false }, async () => {
+  it("should list clients", async () => {
     const res = await client.listaClientes({
       body: { action: "list", id: 13000 },
     })
@@ -118,40 +117,61 @@ describe("Judice API Client", () => {
     assert.strictEqual(parsed.success, true)
   })
 
-  it("should list parties", { only: false }, async () => {
+  it("should get client by ID", async () => {
+    const res = await client.consultaCliente({
+      body: { action: "get", id: 13577 },
+    })
+    assert.strictEqual(res.status, 200)
+    const parsed = dto.consultaClienteResponseSchema.parse(res.body)
+    assert.strictEqual(parsed.success, true)
+  })
+
+  it("should list parties", async () => {
     const res = await client.listaPartes({ body: { action: "list" } })
     assert.strictEqual(res.status, 200)
     const parsed = dto.listaPartesResponseSchema.parse(res.body)
     assert.strictEqual(parsed.success, 1)
   })
 
-  it("should list positions", { only: false }, async () => {
+  it("should list positions", async () => {
     const res = await client.listaPosicoes({ body: { action: "list" } })
     assert.strictEqual(res.status, 200)
     const parsed = dto.listaPosicoesResponseSchema.parse(res.body)
     assert.strictEqual(parsed.retorno.success, true)
   })
 
-  it("should list notary offices", { only: false }, async () => {
+  it("should list notary offices", async () => {
     const res = await client.listaCartorios({ body: { action: "list" } })
     assert.strictEqual(res.status, 200)
     const parsed = dto.listaCartoriosResponseSchema.parse(res.body)
     assert.strictEqual(parsed.retorno.success, true)
   })
 
-  it("should list groups", { only: false }, async () => {
+  it("should list groups", async () => {
     const res = await client.listaGrupos({ body: { action: "list" } })
     assert.strictEqual(res.status, 200)
     const parsed = dto.listaGruposResponseSchema.parse(res.body)
     assert.strictEqual(parsed.retorno.success, true)
   })
 
-  it("should list publications", { only: false }, async () => {
+  it("should list publications", async () => {
     const res = await client.listaPublicacoes({
       body: { action: "list", data_inclusao: "2025-06-20" },
     })
     assert.strictEqual(res.status, 200)
     const parsed = dto.listaPublicacoesResponseSchema.parse(res.body)
     assert.strictEqual(parsed.retorno.success, true)
+  })
+})
+
+describe("Judice API Sync Client", { only: true }, () => {
+  const judiceClientSyncService = container.get(JudiceClientSyncService)
+
+  it("should be defined", async () => {
+    assert(judiceClientSyncService)
+  })
+
+  it("should sync the clients", async () => {
+    await judiceClientSyncService.sync()
   })
 })

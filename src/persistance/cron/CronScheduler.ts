@@ -13,7 +13,6 @@ export class NodeCronJobScheduler implements IJobScheduler {
 
   schedule(
     id: string,
-    name: string,
     schedule: string,
     handler: () => Promise<void>,
     enabled = true,
@@ -39,13 +38,8 @@ export class NodeCronJobScheduler implements IJobScheduler {
       }
     })
 
-    if (enabled) {
-      task.start()
-    }
-
     const job: InternalJob = {
       id,
-      name,
       schedule,
       enabled,
       status: "idle",

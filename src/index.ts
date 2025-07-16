@@ -7,7 +7,6 @@ import { describeRoute, openAPISpecs } from "hono-openapi"
 import { resolver, validator } from "hono-openapi/zod"
 import { z } from "zod"
 
-import { db } from "./persistance/db.ts"
 
 // import { judiceController } from "./application/controllers/judiceController.ts"
 import { clientController } from "./application/controllers/clientController.ts"

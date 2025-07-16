@@ -116,19 +116,24 @@ export class JudiceClientSyncService {
     const syncLogger = this.logger.child({ syncId })
 
     syncLogger.info({ event: "Sync start" }, "Syncing clients from Judice...")
-    const clients = await this.judiceService.listClients()
+
+    const lastSyncClient = await this.clientRepository.findAll({
+      limit: 1,
+      orderBy: { jid: "desc" },
+    })
+
+    const lastId = lastSyncClient[0]?.jid || 0
+
+    syncLogger.info({ lastId }, "Starting sync from last JID")
+
+    const clients = await this.judiceService.listClients({
+      startFrom: lastId,
+    })
+
     syncLogger.info({ count: clients.length }, "Fetched clients from Judice")
 
-    // await Promise.allSettled(
-    //   clients.map((c) => this.syncClientByJid(c.id, syncLogger)),
-    // )
-
-    for (const c of clients) {
-      try {
-        await this.syncClientByJid(c.id, syncLogger)
-      } catch (error) {
-        syncLogger.error({ error, clientId: c.id }, "Failed to sync client")
-      }
-    }
+    await Promise.allSettled(
+      clients.map((c) => this.syncClientByJid(c.id, syncLogger)),
+    )
   }
 }

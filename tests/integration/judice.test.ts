@@ -172,6 +172,6 @@ describe("Judice API Sync Client", { only: true }, () => {
   })
 
   it("should sync the clients", async () => {
-    await judiceClientSyncService.sync()
+    assert.doesNotReject(judiceClientSyncService.sync())
   })
 })

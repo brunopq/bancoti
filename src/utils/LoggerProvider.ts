@@ -15,8 +15,10 @@ function createLoggerFactory(): (serviceName: string) => Logger {
           target: "pino-loki",
           level: "info",
           options: {
-            host: "http://localhost:3100", // Your Loki server
+            host: "http://localhost:3100",
             labels: { app: "bancoti" },
+            batching: true,
+            interval: 5,
           },
         },
       ],

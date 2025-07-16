@@ -1,6 +1,7 @@
 import { Container } from "inversify"
 
 import { RedisCacheService } from "./persistance/cache/redisCacheService.ts"
+import { db } from "./persistance/db.ts"
 
 const container = new Container({
   defaultScope: "Singleton",
@@ -8,6 +9,6 @@ const container = new Container({
 })
 
 container.bind("CacheService").to(RedisCacheService)
-
+container.bind("db").toConstantValue(db)
 
 export { container }

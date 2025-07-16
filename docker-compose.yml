@@ -14,6 +14,8 @@ services:
     image: grafana/loki:2.9.2
     ports:
       - "3100:3100"
+    volumes:
+      - loki_data:/loki
 
   grafana:
     image: grafana/grafana-oss:10.4.2
@@ -23,6 +25,8 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     depends_on:
       - loki
+    volumes:
+      - grafana_data:/var/lib/grafana
 
   redis:
     image: redis:7-alpine
@@ -41,4 +45,5 @@ services:
 volumes:
   db_data:
   redis_data:
-    driver: local
+  loki_data:
+  grafana_data:

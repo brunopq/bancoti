@@ -1,5 +1,5 @@
 import { inject, injectable } from "inversify"
-import { and, eq } from "drizzle-orm"
+import { and, asc, desc, eq } from "drizzle-orm"
 
 import { client } from "../models/client.ts"
 import type { Database } from "../db.ts"
@@ -16,6 +16,13 @@ type Company = typeof legalEntity.$inferSelect
 type FullClient =
   | (Client & { type: "individual" } & Individual)
   | (Client & { type: "legal_entity" } & Company)
+
+  
+type ListClientsOptions = {
+  where?: Partial<Record<keyof Client, Client[keyof Client]>>
+  orderBy?: Partial<Record<keyof Client, "asc" | "desc">>
+  limit?: number
+}
 
 @injectable()
 export class ClientRepository implements IBaseRepository<Client, NewClient> {
@@ -87,9 +94,24 @@ export class ClientRepository implements IBaseRepository<Client, NewClient> {
     return rows[0] ?? null
   }
 
-  async findAll(): Promise<Client[]> {
-    throw new Error("Method not implemented.")
-    // return this.db.select().from(client)
+  async findAll(
+    options: ListClientsOptions = { limit: 500 },
+  ): Promise<Client[]> {
+    const order = []
+
+    if (options.orderBy) {
+      for (const [key, direction] of Object.entries(options.orderBy)) {
+        const orderFn = direction === "asc" ? asc : desc
+        // typescript loses type information here, so we need to cast
+        order.push(orderFn(client[key as keyof Client]))
+      }
+    }
+
+    return this.db
+      .select()
+      .from(client)
+      .orderBy(...order)
+      .limit(options.limit ?? 500)
   }
 
   async create(item: NewClient): Promise<Client> {

@@ -1,6 +1,5 @@
 export interface Job {
   id: string
-  name: string
   schedule: string
   enabled: boolean
   lastRun?: Date
@@ -11,7 +10,6 @@ export interface Job {
 export interface IJobScheduler {
   schedule(
     id: string,
-    name: string,
     schedule: string,
     handler: () => Promise<void>,
     enabled?: boolean,

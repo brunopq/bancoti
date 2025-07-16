@@ -4,7 +4,6 @@ import { Pool } from "pg"
 
 import { env } from "@/utils/env.ts"
 
-import { container } from "@/dependencyManager.ts"
 
 import * as models from "./models/index.ts"
 import { sql } from "drizzle-orm"
@@ -21,8 +20,6 @@ export const db = drizzle({
 await db.execute(sql`CREATE EXTENSION IF NOT EXISTS unaccent`)
 
 export type Database = NodePgDatabase<typeof models>
-
-container.bind("db").toConstantValue(db)
 
 await migrate(db, { migrationsFolder: "drizzle" })
 

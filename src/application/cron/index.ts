@@ -8,10 +8,8 @@ const judiceSyncClient = container.get(JudiceClientSyncService)
 
 cronService.schedule(
   "sync-judice-clients",
-  "Sync Judice Clients",
-  "0 0 * * *", // Every day at midnight
+  "0 1,13 * * *", // Every day 01:00 and 13:00
   async () => {
     await judiceSyncClient.sync()
   },
-  true,
 )

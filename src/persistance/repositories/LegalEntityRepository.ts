@@ -58,7 +58,13 @@ export class LegalEntityRepository
   }
 
   async create(item: InsertLegalEntity): Promise<LegalEntity> {
-    const [created] = await this.db.insert(legalEntity).values(item).returning()
+    const [created] = await this.db
+      .insert(legalEntity)
+      .values({
+        ...item,
+        cnpj: item.cnpj.replace(/\D/g, ""), // Clean CNPJ
+      })
+      .returning()
     return created
   }
   async update(

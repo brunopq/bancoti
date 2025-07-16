@@ -11,8 +11,26 @@ export class ClientService {
   ) {}
 
   async getAllClients(): Promise<Client[]> {
-    // Implement fetching all clients
-    return []
+    const dbClients = await this.clientRepository.findAllFull()
+
+    // TODO: abstract this shit to a mapper
+    return dbClients.map((c) => {
+      if (c.type === "individual") {
+        return {
+          ...c,
+          phones: c.phones || [],
+          email: c.email || undefined,
+          birthDate: c.birthDate || undefined,
+          gender: c.gender || undefined,
+        }
+      }
+
+      if (c.type === "legal_entity") {
+        return { ...c, type: "company" }
+      }
+
+      return c
+    })
   }
 
   async getClientById(id: string): Promise<Client | null> {
@@ -47,7 +65,8 @@ export class ClientService {
   }
 
   async getClientByCPF(cpf: string): Promise<Individual | null> {
-    const client = await this.clientRepository.findByCPF(cpf)
+    const cleanCpf = cpf.replace(/\D/g, "")
+    const client = await this.clientRepository.findByCPF(cleanCpf)
 
     if (!client) return null
 
@@ -63,7 +82,8 @@ export class ClientService {
   }
 
   async getClientByCNPJ(cnpj: string): Promise<Company | null> {
-    const client = await this.clientRepository.findByCNPJ(cnpj)
+    const cleanCnpj = cnpj.replace(/\D/g, "")
+    const client = await this.clientRepository.findByCNPJ(cleanCnpj)
 
     if (!client) return null
 

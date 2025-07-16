@@ -11,7 +11,7 @@ export const IndividualSchema = ClientBaseSchema.extend({
   type: z.literal("individual"),
   name: z.string(),
   cpf: z.string(),
-  email: z.string().email().optional(),
+  email: z.string().optional(),
   phones: z.string().array(),
   birthDate: z.coerce.date().optional(),
   gender: z.enum(["male", "female", "other"]).optional(),

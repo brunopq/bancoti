@@ -58,7 +58,14 @@ export class IndividualRepository
   }
 
   async create(item: InsertIndividual): Promise<Individual> {
-    const [created] = await this.db.insert(individual).values(item).returning()
+    const [created] = await this.db
+      .insert(individual)
+      .values({
+        ...item,
+        cpf: item.cpf.replace(/\D/g, ""), // Clean CPF
+        phones: item.phones?.map((phone) => phone.replace(/\D/g, "")), // Clean phones
+      })
+      .returning()
     return created
   }
   async update(id: string, item: InsertIndividual): Promise<Individual | null> {

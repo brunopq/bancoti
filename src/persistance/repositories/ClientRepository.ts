@@ -1,5 +1,6 @@
 import { inject, injectable } from "inversify"
 import { and, asc, desc, eq } from "drizzle-orm"
+import { sql } from "drizzle-orm"
 
 import { client } from "../models/client.ts"
 import type { Database } from "../db.ts"
@@ -17,7 +18,6 @@ type FullClient =
   | (Client & { type: "individual" } & Individual)
   | (Client & { type: "legal_entity" } & Company)
 
-  
 type ListClientsOptions = {
   where?: Partial<Record<keyof Client, Client[keyof Client]>>
   orderBy?: Partial<Record<keyof Client, "asc" | "desc">>
@@ -62,15 +62,16 @@ export class ClientRepository implements IBaseRepository<Client, NewClient> {
   }
 
   async findByCPF(cpf: string): Promise<Individual | null> {
-    const [{ clients, individuals }] = await this.db
+    const rows = await this.db
       .select()
       .from(client)
-      .leftJoin(individual, eq(client.entityId, individual.id))
+      .innerJoin(individual, eq(client.entityId, individual.id))
       .where(and(eq(client.type, "individual"), eq(individual.cpf, cpf)))
+      .limit(1)
 
-    if (!individuals) return null
+    if (rows.length === 0) return null
 
-    return { ...clients, ...individuals }
+    return { ...rows[0].clients, ...rows[0].individuals }
   }
 
   async findByCNPJ(cnpj: string): Promise<Company | null> {
@@ -112,6 +113,54 @@ export class ClientRepository implements IBaseRepository<Client, NewClient> {
       .from(client)
       .orderBy(...order)
       .limit(options.limit ?? 500)
+  }
+
+  async findAllFull(
+    options: ListClientsOptions = { limit: 500 },
+  ): Promise<FullClient[]> {
+    const order = []
+
+    if (options.orderBy) {
+      for (const [key, direction] of Object.entries(options.orderBy)) {
+        const orderFn = direction === "asc" ? asc : desc
+        // typescript loses type information here, so we need to cast
+        order.push(orderFn(client[key as keyof Client]))
+      }
+    }
+
+    const rows = await this.db
+      .select()
+      .from(client)
+      .leftJoin(
+        individual,
+        and(eq(client.entityId, individual.id), eq(client.type, "individual")),
+      )
+      .leftJoin(
+        legalEntity,
+        and(
+          eq(client.entityId, legalEntity.id),
+          eq(client.type, "legal_entity"),
+        ),
+      )
+      .orderBy(...order)
+      .limit(options.limit ?? 500)
+
+    return rows
+      .map((row) => {
+        if (row.clients.type === "individual" && row.individuals)
+          return {
+            ...row.clients,
+            ...row.individuals,
+            type: "individual" as const,
+          }
+        if (row.clients.type === "legal_entity" && row.legal_entities)
+          return {
+            ...row.clients,
+            ...row.legal_entities,
+            type: "legal_entity" as const,
+          }
+      })
+      .filter((c) => c !== undefined)
   }
 
   async create(item: NewClient): Promise<Client> {

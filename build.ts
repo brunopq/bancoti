@@ -1,6 +1,8 @@
-import { build } from "bun"
+import { build, $ } from "bun"
 
-build({
+const start = Date.now()
+
+await build({
   entrypoints: ["./src/index.ts"],
   outdir: "./dist",
   format: "esm",
@@ -8,3 +10,9 @@ build({
   sourcemap: "linked",
   target: "node",
 })
+
+await $`cp -r ./drizzle ./dist/drizzle`
+
+const end = Date.now()
+
+console.log(`Build completed successfully in ${end - start}ms`)

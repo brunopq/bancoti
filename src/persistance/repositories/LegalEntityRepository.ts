@@ -22,10 +22,12 @@ export class LegalEntityRepository
   }
 
   async findByCnpj(cnpj: string): Promise<LegalEntity | null> {
+    const cleanCnpj = cnpj.replace(/\D/g, "") // Clean CNPJ
+
     const rows = await this.db
       .select()
       .from(legalEntity)
-      .where(eq(legalEntity.cnpj, cnpj))
+      .where(eq(legalEntity.cnpj, cleanCnpj))
 
     return rows[0] ?? null
   }

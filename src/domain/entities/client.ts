@@ -1,40 +1,37 @@
 import { z } from "zod"
 
+import { IndividualSchema } from "./individual.ts"
+import { CompanySchema } from "./company.ts"
+
 const ClientType = z.enum(["individual", "company"])
 
-export const ClientBaseSchema = z.object({
-  id: z.string(),
+const BaseClientSchema = z.object({
+  id: z.string(), // Esse id é o id da entidade (individual ou company)
   type: ClientType,
 })
 
-export const IndividualSchema = ClientBaseSchema.extend({
+export const IndividualClientSchema = BaseClientSchema.extend({
   type: z.literal("individual"),
-  name: z.string(),
-  cpf: z.string(),
-  email: z.string().optional(),
-  phones: z.string().array(),
-  birthDate: z.coerce.date().optional(),
-  gender: z.enum(["male", "female", "other"]).optional(),
+  individual: IndividualSchema,
 })
 
-export const CompanySchema = ClientBaseSchema.extend({
+export const CompanyClientSchema = BaseClientSchema.extend({
   type: z.literal("company"),
-  corporateName: z.string(),
-  cnpj: z.string(),
+  company: CompanySchema,
 })
 
 export const ClientSchema = z.discriminatedUnion("type", [
-  IndividualSchema,
-  CompanySchema,
+  IndividualClientSchema,
+  CompanyClientSchema,
 ])
 
 export const NewClientSchema = z.discriminatedUnion("type", [
-  IndividualSchema.omit({ id: true }),
-  CompanySchema.omit({ id: true }),
+  IndividualClientSchema.omit({ id: true }),
+  CompanyClientSchema.omit({ id: true }),
 ])
 
 export type Client = z.infer<typeof ClientSchema>
-export type Individual = z.infer<typeof IndividualSchema>
-export type Company = z.infer<typeof CompanySchema>
+export type IndividualClient = z.infer<typeof IndividualClientSchema>
+export type CompanyClient = z.infer<typeof CompanyClientSchema>
 
 export type NewClient = z.infer<typeof NewClientSchema>

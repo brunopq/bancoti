@@ -1,6 +1,5 @@
 import { inject, injectable } from "inversify"
 import { and, asc, desc, eq } from "drizzle-orm"
-import { sql } from "drizzle-orm"
 
 import { client } from "../models/client.ts"
 import type { Database } from "../db.ts"
@@ -12,11 +11,15 @@ type Client = typeof client.$inferSelect
 type NewClient = typeof client.$inferInsert
 
 type Individual = typeof individual.$inferSelect
-type Company = typeof legalEntity.$inferSelect
+type LegalEntity = typeof legalEntity.$inferSelect
 
-type FullClient =
-  | (Client & { type: "individual" } & Individual)
-  | (Client & { type: "legal_entity" } & Company)
+type IndividualClient = Client & { type: "individual"; individual: Individual }
+type LegalEntityClient = Client & {
+  type: "legal_entity"
+  legalEntity: LegalEntity
+}
+
+type FullClient = IndividualClient | LegalEntityClient
 
 type ListClientsOptions = {
   where?: Partial<Record<keyof Client, Client[keyof Client]>>
@@ -44,7 +47,7 @@ export class ClientRepository implements IBaseRepository<Client, NewClient> {
 
       if (!individualData) return null
 
-      return { ...clientData, ...individualData, type: "individual" }
+      return { ...clientData, individual: individualData, type: "individual" }
     }
 
     if (clientData.type === "legal_entity") {
@@ -55,13 +58,17 @@ export class ClientRepository implements IBaseRepository<Client, NewClient> {
 
       if (!legalEntityData) return null
 
-      return { ...clientData, ...legalEntityData, type: "legal_entity" }
+      return {
+        ...clientData,
+        legalEntity: legalEntityData,
+        type: "legal_entity",
+      }
     }
 
     throw new Error(`Unknown client type: ${clientData.type}`)
   }
 
-  async findByCPF(cpf: string): Promise<Individual | null> {
+  async findByCPF(cpf: string): Promise<IndividualClient | null> {
     const rows = await this.db
       .select()
       .from(client)
@@ -71,19 +78,27 @@ export class ClientRepository implements IBaseRepository<Client, NewClient> {
 
     if (rows.length === 0) return null
 
-    return { ...rows[0].clients, ...rows[0].individuals }
+    return {
+      ...rows[0].clients,
+      type: "individual",
+      individual: { ...rows[0].individuals },
+    }
   }
 
-  async findByCNPJ(cnpj: string): Promise<Company | null> {
-    const [{ clients, legal_entities }] = await this.db
+  async findByCNPJ(cnpj: string): Promise<LegalEntityClient | null> {
+    const rows = await this.db
       .select()
       .from(client)
-      .leftJoin(legalEntity, eq(client.entityId, legalEntity.id))
+      .innerJoin(legalEntity, eq(client.entityId, legalEntity.id))
       .where(and(eq(client.type, "legal_entity"), eq(legalEntity.cnpj, cnpj)))
 
-    if (!legal_entities) return null
+    if (rows.length === 0) return null
 
-    return { ...clients, ...legal_entities }
+    return {
+      ...rows[0].clients,
+      type: "legal_entity",
+      legalEntity: rows[0].legal_entities,
+    }
   }
 
   async findByEntity(entityId: string): Promise<Client | null> {
@@ -150,13 +165,13 @@ export class ClientRepository implements IBaseRepository<Client, NewClient> {
         if (row.clients.type === "individual" && row.individuals)
           return {
             ...row.clients,
-            ...row.individuals,
+            individual: row.individuals,
             type: "individual" as const,
           }
         if (row.clients.type === "legal_entity" && row.legal_entities)
           return {
             ...row.clients,
-            ...row.legal_entities,
+            legalEntity: row.legal_entities,
             type: "legal_entity" as const,
           }
       })

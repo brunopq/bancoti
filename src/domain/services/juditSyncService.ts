@@ -101,26 +101,41 @@ export class JuditSyncService {
     let entityId: string
     let entityType: EntityType
 
-    switch (party.entity_type) {
-      case "company":
+    if (
+      party.entity_type?.toLowerCase() === "company" ||
+      party.document_type?.toLowerCase() === "cnpj"
+    ) {
+      entityType = "legal_entity"
+    } else if (
+      party.entity_type?.toLowerCase() === "person" ||
+      party.document_type?.toLowerCase() === "cpf"
+    ) {
+      entityType = "individual"
+    } else {
+      throw new Error(
+        `Unknown entity type (${party.entity_type}) and document type ${party.document_type} for party ${party.name}`,
+      )
+    }
+
+    switch (entityType) {
+      case "legal_entity":
         {
           const legalEntity = await this.syncLegalEntity(party)
           entityId = legalEntity.id
-          entityType = "legal_entity"
         }
         break
-      case "person":
+      case "individual":
         {
           const individual = await this.syncPerson(party)
           entityId = individual.id
-          entityType = "individual"
         }
         break
+    }
 
-      default:
-        throw new Error(
-          `Unknown entity type: ${party.entity_type} for party ${party.name}`,
-        ) // TODO: handle this better
+    const dbParty = await this.partyRepository.findByEntityId(entityId)
+
+    if (dbParty) {
+      return dbParty
     }
 
     return await this.partyRepository.create({

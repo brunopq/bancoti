@@ -1,5 +1,5 @@
 import { inject, injectable } from "inversify"
-import { and, eq, inArray } from "drizzle-orm"
+import { and, eq, inArray, or } from "drizzle-orm"
 
 import type { Database } from "../db.ts"
 
@@ -16,6 +16,9 @@ import { client } from "../models/client.ts"
 import { party } from "../models/party.ts"
 import { subject } from "../models/subject.ts"
 import { movement, type Movement } from "../models/movement.ts"
+import { individual } from "../models/individual.ts"
+import { legalEntity } from "../models/legalEntity.ts"
+import { court } from "../models/court.ts"
 
 type LawsuitSearchFilters = {
   clientId?: string
@@ -23,7 +26,9 @@ type LawsuitSearchFilters = {
 }
 
 @injectable()
-export class LawsuitRepository implements IBaseRepository<Lawsuit, InsertLawsuit> {
+export class LawsuitRepository
+  implements IBaseRepository<Lawsuit, InsertLawsuit>
+{
   constructor(@inject("db") private db: Database) {}
 
   async findByIdDomain(
@@ -84,7 +89,27 @@ export class LawsuitRepository implements IBaseRepository<Lawsuit, InsertLawsuit
           filters?.clientRole ? eq(party.role, filters.clientRole) : undefined,
         ),
       )
-      .leftJoin(party, eq(party.entityId, client.id))
+      .leftJoin(
+        individual,
+        and(eq(individual.id, client.entityId), eq(client.type, "individual")),
+      )
+      .leftJoin(
+        legalEntity,
+        and(
+          eq(legalEntity.id, client.entityId),
+          eq(client.type, "legal_entity"),
+        ),
+      )
+      .leftJoin(
+        party,
+        or(
+          and(eq(party.entityId, individual.id), eq(party.type, "individual")),
+          and(
+            eq(party.entityId, legalEntity.id),
+            eq(party.type, "legal_entity"),
+          ),
+        ),
+      )
       .leftJoin(lawsuit, eq(lawsuit.id, party.lawsuitId))
 
     return a.map((aa) => aa.lawsuits).filter((aa) => aa !== null)
@@ -107,6 +132,156 @@ export class LawsuitRepository implements IBaseRepository<Lawsuit, InsertLawsuit
         .filter((s) => lawsuit.subjectsIds.includes(s.id))
         .map((s) => s.name),
     }))
+  }
+
+  async findAllFull(filters?: LawsuitSearchFilters) {
+    const lawsuits = await this.db
+      .select()
+      .from(lawsuit)
+      .leftJoin(party, eq(party.lawsuitId, lawsuit.id))
+      .leftJoin(
+        individual,
+        and(eq(individual.id, party.entityId), eq(party.type, "individual")),
+      )
+      .leftJoin(
+        legalEntity,
+        and(eq(legalEntity.id, party.entityId), eq(party.type, "legal_entity")),
+      )
+      .leftJoin(
+        client,
+        or(
+          and(
+            eq(client.type, "individual"),
+            eq(client.entityId, individual.id),
+          ),
+          and(
+            eq(client.type, "legal_entity"),
+            eq(client.entityId, legalEntity.id),
+          ),
+        ),
+      )
+      .leftJoin(movement, eq(movement.lawsuitId, lawsuit.id))
+      .where(
+        filters
+          ? and(
+              filters.clientId ? eq(client.id, filters.clientId) : undefined,
+              filters?.clientRole
+                ? eq(party.role, filters.clientRole)
+                : undefined,
+            )
+          : undefined,
+      )
+
+    return lawsuits
+  }
+
+  async findAllDomainFull(
+    filters?: LawsuitSearchFilters,
+  ): Promise<DomainLawsuitWith<"courts" | "movements" | "parties">[]> {
+    const lawsuits = await this.findAllFull(filters)
+
+    // Group by lawsuit ID to avoid duplicates
+    const map = new Map<
+      string,
+      {
+        lawsuit: DomainLawsuitWith<"courts" | "movements" | "parties">
+        courtIds: string[]
+        subjectsIds: string[]
+      }
+    >()
+
+    for (const {
+      lawsuits: l,
+      clients: c,
+      individuals: i,
+      legal_entities: le,
+      movements: m,
+      parties: p,
+    } of lawsuits) {
+      if (!map.has(l.id)) {
+        map.set(l.id, {
+          lawsuit: {
+            ...l,
+            courts: [],
+            movements: [],
+            parties: [],
+            subjects: [],
+          },
+          courtIds: l.courtsIds,
+          subjectsIds: l.subjectsIds,
+        })
+      }
+
+      // biome-ignore lint/style/noNonNullAssertion: <explanation>
+      const lawsuit = map.get(l.id)!
+
+      lawsuit.courtIds.push(...l.courtsIds)
+      lawsuit.subjectsIds.push(...l.subjectsIds)
+
+      if (m)
+        lawsuit.lawsuit.movements.push({
+          ...m,
+          lawsuitId: l.id,
+        })
+
+      if (p && p.type === "individual" && i) {
+        lawsuit.lawsuit.parties.push({
+          ...p,
+          type: "individual",
+          individual: {
+            ...i,
+            phones: i.phones || [],
+            email: i.email || undefined,
+            birthDate: i.birthDate || undefined,
+            gender: i.gender || undefined,
+          },
+        })
+      }
+
+      if (p && p.type === "legal_entity" && le) {
+        lawsuit.lawsuit.parties.push({
+          ...p,
+          type: "company",
+          company: le,
+        })
+      }
+    }
+
+    // Fetch courts for each lawsuit
+    const courtIds = Array.from(
+      new Set(Array.from(map.values()).flatMap((l) => l.courtIds)),
+    )
+    const courts = await this.db
+      .select()
+      .from(court)
+      .where(inArray(court.id, courtIds))
+
+    for (const lawsuit of map.values()) {
+      lawsuit.lawsuit.courts = courts
+        .filter((c) => lawsuit.courtIds.includes(c.id))
+        .map((c) => ({
+          ...c,
+          forumId: c.forumId || undefined,
+          tribunalId: c.tribunalId || undefined,
+        }))
+    }
+
+    // fetch subjects for each lawsuit
+    const subjectsIds = Array.from(
+      new Set(Array.from(map.values()).flatMap((l) => l.subjectsIds)),
+    )
+    const subjects = await this.db
+      .select()
+      .from(subject)
+      .where(inArray(subject.id, subjectsIds))
+
+    for (const lawsuit of map.values()) {
+      lawsuit.lawsuit.subjects = subjects
+        .filter((s) => lawsuit.subjectsIds.includes(s.id))
+        .map((s) => s.name)
+    }
+
+    return Array.from(map.values().map((l) => l.lawsuit))
   }
 
   async findByCnj(cnj: string) {

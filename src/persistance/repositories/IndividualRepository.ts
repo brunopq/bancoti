@@ -22,10 +22,12 @@ export class IndividualRepository
   }
 
   async findByCpf(cpf: string): Promise<Individual | null> {
+    const cleanCpf = cpf.replace(/\D/g, "") // Clean CPF
+
     const rows = await this.db
       .select()
       .from(individual)
-      .where(eq(individual.cpf, cpf))
+      .where(eq(individual.cpf, cleanCpf))
 
     return rows[0] ?? null
   }

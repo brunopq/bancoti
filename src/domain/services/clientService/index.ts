@@ -2,7 +2,11 @@ import { inject, injectable } from "inversify"
 
 import { ClientRepository } from "@/persistance/repositories/ClientRepository.ts"
 
-import type { Client, Individual, Company } from "@/domain/entities/client.ts"
+import type {
+  Client,
+  IndividualClient,
+  CompanyClient,
+} from "@/domain/entities/client.ts"
 
 @injectable()
 export class ClientService {
@@ -18,15 +22,18 @@ export class ClientService {
       if (c.type === "individual") {
         return {
           ...c,
-          phones: c.phones || [],
-          email: c.email || undefined,
-          birthDate: c.birthDate || undefined,
-          gender: c.gender || undefined,
+          individual: {
+            ...c.individual,
+            phones: c.individual.phones || [],
+            email: c.individual.email || undefined,
+            birthDate: c.individual.birthDate || undefined,
+            gender: c.individual.gender || undefined,
+          },
         }
       }
 
       if (c.type === "legal_entity") {
-        return { ...c, type: "company" }
+        return { ...c, type: "company", company: c.legalEntity }
       }
 
       return c
@@ -42,12 +49,13 @@ export class ClientService {
       return {
         type: "individual",
         id: client.id,
-        name: client.name,
-        cpf: client.cpf,
-        email: client.email || undefined,
-        phones: client.phones || [],
-        birthDate: client.birthDate || undefined,
-        gender: client.gender || undefined,
+        individual: {
+          ...client.individual,
+          email: client.individual.email || undefined,
+          phones: client.individual.phones || [],
+          birthDate: client.individual.birthDate || undefined,
+          gender: client.individual.gender || undefined,
+        },
       }
     }
 
@@ -55,16 +63,14 @@ export class ClientService {
       return {
         type: "company",
         id: client.id,
-        corporateName: client.corporateName,
-        cnpj: client.cnpj,
+        company: client.legalEntity,
       }
     }
 
     throw new Error("Unknown client type")
-
   }
 
-  async getClientByCPF(cpf: string): Promise<Individual | null> {
+  async getClientByCPF(cpf: string): Promise<IndividualClient | null> {
     const cleanCpf = cpf.replace(/\D/g, "")
     const client = await this.clientRepository.findByCPF(cleanCpf)
 
@@ -73,15 +79,17 @@ export class ClientService {
     return {
       type: "individual",
       id: client.id,
-      name: client.name,
-      cpf: client.cpf,
-      email: client.email || undefined,
-      phones: client.phones || [],
-      birthDate: client.birthDate || undefined,
+      individual: {
+        ...client.individual,
+        phones: client.individual.phones || [],
+        email: client.individual.email || undefined,
+        birthDate: client.individual.birthDate || undefined,
+        gender: client.individual.gender || undefined,
+      },
     }
   }
 
-  async getClientByCNPJ(cnpj: string): Promise<Company | null> {
+  async getClientByCNPJ(cnpj: string): Promise<CompanyClient | null> {
     const cleanCnpj = cnpj.replace(/\D/g, "")
     const client = await this.clientRepository.findByCNPJ(cleanCnpj)
 
@@ -90,8 +98,7 @@ export class ClientService {
     return {
       type: "company",
       id: client.id,
-      corporateName: client.corporateName,
-      cnpj: client.cnpj,
+      company: client.legalEntity,
     }
   }
 }

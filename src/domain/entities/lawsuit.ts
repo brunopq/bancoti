@@ -1,5 +1,6 @@
 import type { Movement } from "./movement.ts"
 import type { Court } from "./court.ts"
+import type { Party } from "./party.ts"
 
 export const lawsuitAreas = [
   "civil",
@@ -33,6 +34,7 @@ export type Lawsuit = {
 export type LawsuitRelations = {
   movements: Movement[]
   courts: Court[]
+  parties: Party[]
 }
 
 export type LawsuitWith<T extends keyof LawsuitRelations> = Lawsuit &

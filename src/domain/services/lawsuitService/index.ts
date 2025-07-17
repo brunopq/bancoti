@@ -39,7 +39,7 @@ export class LawsuitService {
       )
     }
 
-    return this.lawsuitRepository.findAllDomain(filters)
+    return this.lawsuitRepository.findAllDomainFull(filters)
   }
 
   async getById(id: string): Promise<LawsuitWith<"movements">> {

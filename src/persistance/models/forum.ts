@@ -1,8 +1,8 @@
 import { pgTable, text } from "drizzle-orm/pg-core"
+import { relations } from "drizzle-orm"
 
 import { baseTable } from "./baseTable.ts"
 import { district } from "./district.ts"
-import { relations } from "drizzle-orm"
 
 export const forum = pgTable("forums", {
   ...baseTable,

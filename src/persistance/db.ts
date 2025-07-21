@@ -15,7 +15,7 @@ export const db = drizzle({
   client: pool,
   schema: models,
   casing: "snake_case",
-  logger: true,
+  // logger: true,
 })
 
 await db.execute(sql`CREATE EXTENSION IF NOT EXISTS unaccent`)

@@ -1,4 +1,4 @@
-import { pgTable, text } from "drizzle-orm/pg-core"
+import { integer, pgTable, text } from "drizzle-orm/pg-core"
 import { relations } from "drizzle-orm"
 
 import { baseTable } from "./baseTable.ts"
@@ -22,6 +22,7 @@ export const lawsuit = pgTable("lawsuits", {
     .references(() => subject.id)
     .array()
     .notNull(),
+  _jid: integer(),
 })
 
 export const lawsuitRelations = relations(lawsuit, ({ one, many }) => ({

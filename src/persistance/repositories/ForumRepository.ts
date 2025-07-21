@@ -24,10 +24,22 @@ export class ForumRepository implements IBaseRepository<Forum, InsertForum> {
   async findAll(): Promise<Forum[]> {
     return this.db.select().from(forum)
   }
+
   async create(item: InsertForum): Promise<Forum> {
     const [created] = await this.db.insert(forum).values(item).returning()
     return created
   }
+
+  async sync(item: InsertForum): Promise<Forum> {
+    const existing = await this.findByName(item.name)
+
+    if (!existing) {
+      return this.create(item)
+    }
+
+    return existing
+  }
+
   async update(id: string, item: InsertForum): Promise<Forum | null> {
     const [updated] = await this.db
       .update(forum)

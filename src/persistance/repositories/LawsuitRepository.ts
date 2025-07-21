@@ -1,5 +1,5 @@
 import { inject, injectable } from "inversify"
-import { and, eq, inArray, or } from "drizzle-orm"
+import { and, asc, desc, eq, inArray, or, type Query } from "drizzle-orm"
 
 import type { Database } from "../db.ts"
 
@@ -19,16 +19,20 @@ import { movement, type Movement } from "../models/movement.ts"
 import { individual } from "../models/individual.ts"
 import { legalEntity } from "../models/legalEntity.ts"
 import { court } from "../models/court.ts"
+import type { PgSelectBuilder } from "drizzle-orm/pg-core"
 
 type LawsuitSearchFilters = {
   clientId?: string
   clientRole?: PartyRole
 }
 
+type LawsuitListOptions = {
+  orderBy?: Partial<Record<keyof Lawsuit, "asc" | "desc">>
+  limit?: number
+}
+
 @injectable()
-export class LawsuitRepository
-  implements IBaseRepository<Lawsuit, InsertLawsuit>
-{
+export class LawsuitRepository implements IBaseRepository<Lawsuit, InsertLawsuit> {
   constructor(@inject("db") private db: Database) {}
 
   async findByIdDomain(
@@ -75,11 +79,23 @@ export class LawsuitRepository
     }
   }
 
-  async findAll(filters?: LawsuitSearchFilters): Promise<Lawsuit[]> {
+  async findAll(
+    filters?: LawsuitSearchFilters,
+    options?: LawsuitListOptions,
+  ): Promise<Lawsuit[]> {
     if (!filters || !filters.clientId) {
-      return this.db.select().from(lawsuit)
+      return await this.db
+        .select()
+        .from(lawsuit)
+        .orderBy(
+          ...Object.entries(options?.orderBy || {}).map(([k, v]) =>
+            v === "asc"
+              ? asc(lawsuit[k as keyof Lawsuit])
+              : desc(lawsuit[k as keyof Lawsuit]),
+          ),
+        )
+        .limit(options?.limit || 1000)
     }
-
     const a = await this.db
       .select()
       .from(client)
@@ -111,6 +127,14 @@ export class LawsuitRepository
         ),
       )
       .leftJoin(lawsuit, eq(lawsuit.id, party.lawsuitId))
+      .orderBy(
+        ...Object.entries(options?.orderBy || {}).map(([k, v]) =>
+          v === "asc"
+            ? asc(lawsuit[k as keyof Lawsuit])
+            : desc(lawsuit[k as keyof Lawsuit]),
+        ),
+      )
+      .limit(options?.limit || 1000)
 
     return a.map((aa) => aa.lawsuits).filter((aa) => aa !== null)
   }

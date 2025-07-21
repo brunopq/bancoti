@@ -7,11 +7,16 @@ import type {
   consultaProcessoResponseSchema,
   listaClientesResponseSchema,
   consultaClienteResponseSchema,
+  listaProcessosResponseSchema,
 } from "./dto/index.ts"
 import type { ICacheService } from "@/domain/services/ICacheService.ts"
 
 type JudiceMovementDTO = z.infer<
   typeof listaAndamentosResponseSchema
+>["retorno"]["object"][number]
+
+type JudiceListLawsuitsDTO = z.infer<
+  typeof listaProcessosResponseSchema
 >["retorno"]["object"][number]
 
 type JudiceLawsuitDTO = z.infer<
@@ -66,6 +71,26 @@ export class JudiceService implements IJudiceService {
     }
     console.log("CNJ to JID cache populated, checking again...")
     return await this.cacheService.get(cnj)
+  }
+
+  async listLawsuits(options?: { startFrom?: number }): Promise<
+    JudiceListLawsuitsDTO[]
+  > {
+    const { body, status } = await this.api.listaProcessos({
+      body: {
+        action: "list",
+        id: options?.startFrom ?? 0,
+      },
+    })
+
+    if (status !== 200)
+      throw new Error(
+        `Failed to fetch lawsuits, judice responded with code ${status}`,
+      )
+
+    if (!body.success) throw new Error(`Judice API error: ${body.message}`)
+
+    return body.retorno.object
   }
 
   async getLawsuitByCNJ(cnj: string): Promise<JudiceLawsuitDTO> {

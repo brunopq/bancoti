@@ -43,6 +43,14 @@ export const listaProcessosResponseSchema = wrongResponseSchema(
       fisicoeletronico: z.string(),
       pasta_do_cliente: z.string(),
       situacao: z.number(), // 1 - ativo, 0 - encerrado
+      area: z.object({
+        id: z.number(),
+        nome: z.string(),
+      }),
+      tipo_de_acao: z.object({
+        id: z.number(),
+        nome: z.string(),
+      }),
       comarca: z.object({
         id: z.number(),
         nome: z.string(),

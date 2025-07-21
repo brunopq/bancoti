@@ -1,11 +1,13 @@
 import { describe, it } from "node:test"
 import assert from "node:assert"
 
+import { container } from "@/dependencyManager.ts"
+
 import { apiClient } from "@/persistance/external/judice/apiClient.ts"
 import * as dto from "@/persistance/external/judice/dto/index.ts"
 
 import { JudiceClientSyncService } from "@/domain/services/judiceClientSyncService/index.ts"
-import { container } from "@/dependencyManager.ts"
+import { JudiceLawsuitSyncService } from "@/domain/services/judiceLawsuitSyncService/index.ts"
 
 describe("Judice API Client", () => {
   const client = apiClient
@@ -164,7 +166,7 @@ describe("Judice API Client", () => {
   })
 })
 
-describe("Judice API Sync Client", { only: true }, () => {
+describe("Judice API Sync Client", () => {
   const judiceClientSyncService = container.get(JudiceClientSyncService)
 
   it("should be defined", async () => {
@@ -173,5 +175,17 @@ describe("Judice API Sync Client", { only: true }, () => {
 
   it("should sync the clients", async () => {
     assert.doesNotReject(judiceClientSyncService.sync())
+  })
+})
+
+describe("Judice API Lawsuit Sync Service", { only: true }, () => {
+  const lawsuitSyncService = container.get(JudiceLawsuitSyncService)
+
+  it("should be defined", () => {
+    assert(lawsuitSyncService)
+  })
+
+  it("should sync lawsuits", async () => {
+    assert.doesNotReject(() => lawsuitSyncService.sync())
   })
 })

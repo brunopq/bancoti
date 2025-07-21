@@ -30,10 +30,22 @@ export class DistrictRepository implements IBaseRepository<District, InsertDistr
   async findAll(): Promise<District[]> {
     return this.db.select().from(district)
   }
+
   async create(item: InsertDistrict): Promise<District> {
     const [created] = await this.db.insert(district).values(item).returning()
     return created
   }
+
+  async sync(item: InsertDistrict): Promise<District> {
+    const existing = await this.findByName(item.name)
+
+    if (!existing) {
+      return this.create(item)
+    }
+
+    return existing
+  }
+
   async update(id: string, item: InsertDistrict): Promise<District | null> {
     const [updated] = await this.db
       .update(district)

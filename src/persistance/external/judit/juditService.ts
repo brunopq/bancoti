@@ -18,7 +18,7 @@ export class JuditService {
       },
     })
 
-    if (createdReq.status !== 200)
+    if (createdReq.status !== 201)
       throw new Error("Error while creating lawsuit search")
 
     const res = await this.pollRequest(createdReq.body.request_id)

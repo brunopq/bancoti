@@ -1,4 +1,4 @@
-import { integer, pgTable, text } from "drizzle-orm/pg-core"
+import { integer, pgTable, text, timestamp } from "drizzle-orm/pg-core"
 import { relations } from "drizzle-orm"
 
 import { baseTable } from "./baseTable.ts"
@@ -7,6 +7,7 @@ import { lawsuitArea, lawsuitInstance } from "./enums.ts"
 import { movement } from "./movement.ts"
 import { court } from "./court.ts"
 import { subject } from "./subject.ts"
+
 
 export const lawsuit = pgTable("lawsuits", {
   ...baseTable,
@@ -22,7 +23,9 @@ export const lawsuit = pgTable("lawsuits", {
     .references(() => subject.id)
     .array()
     .notNull(),
+
   _jid: integer(),
+  syncedAt: timestamp({ mode: "date", withTimezone: true }),
 })
 
 export const lawsuitRelations = relations(lawsuit, ({ one, many }) => ({

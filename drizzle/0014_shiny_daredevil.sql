@@ -1,0 +1,1 @@
+ALTER TABLE "judit_api"."api_call" ALTER COLUMN "request" DROP NOT NULL;

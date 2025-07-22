@@ -19,12 +19,14 @@ export class JuditApiClient {
   constructor(@inject(LoggerClient) client: LoggerClient) {
     this.requests = initClient(requestsRouter, {
       baseUrl: env.JUDIT_REQUESTS_BASE_URL,
-      api: client.fetch,
+      baseHeaders: { "api-key": env.JUDIT_API_KEY },
+      api: (args) => client.fetch(args),
     })
 
     this.tracking = initClient(trackingRouter, {
       baseUrl: env.JUDIT_TRACKING_BASE_URL,
-      api: client.fetch,
+      baseHeaders: { "api-key": env.JUDIT_API_KEY },
+      api: (args) => client.fetch(args),
     })
   }
 

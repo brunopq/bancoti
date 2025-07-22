@@ -1,8 +1,11 @@
 import { pino, type Logger } from "pino"
 
+import { env } from "@/utils/env.ts"
+
+
 function createLoggerFactory(): (serviceName: string) => Logger {
   const logger = pino({
-    level: process.env.LOG_LEVEL || "info",
+    level: env.LOG_LEVEL || "info",
     base: undefined, // Removes pid and hostname
     transport: {
       targets: [
@@ -15,8 +18,8 @@ function createLoggerFactory(): (serviceName: string) => Logger {
           target: "pino-loki",
           level: "info",
           options: {
-            host: "http://localhost:3100",
-            labels: { app: "bancoti" },
+            host: env.LOGGER_HOST,
+            labels: { app: "bancoti", enviroment: env.NODE_ENV },
             batching: true,
             interval: 5,
           },

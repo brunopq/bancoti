@@ -1,4 +1,7 @@
 import { injectable, inject } from "inversify"
+import { differenceInDays } from "date-fns"
+
+import { LoggerFactory } from "@/utils/LoggerProvider.ts"
 
 import { JuditService } from "@/persistance/external/judit/juditService.ts"
 import { LawsuitRepository } from "@/persistance/repositories/LawsuitRepository.ts"
@@ -13,7 +16,7 @@ import { MovementRepository } from "@/persistance/repositories/MovementRepositor
 import type { Lawsuit } from "@/persistance/models/lawsuit.ts"
 import type { InsertCourt, Court } from "@/persistance/models/court.ts"
 import type { Party } from "@/persistance/models/party.ts"
-import type { EntityType } from "@/persistance/models/enums.ts"
+import type { EntityType, PartyRole } from "@/persistance/models/enums.ts"
 import type { InsertSubject, Subject } from "@/persistance/models/subject.ts"
 import type { JuditParty } from "@/persistance/external/judit/dto/index.ts"
 import type { LegalEntity } from "@/persistance/models/legalEntity.ts"
@@ -47,74 +50,121 @@ export class JuditSyncService {
     private readonly subjectRepository: SubjectRepository,
     @inject(MovementRepository)
     private readonly movementRepository: MovementRepository,
+
+    private readonly logger = LoggerFactory("JuditSyncService"),
   ) {}
 
-  // TODO: move batch sync to repositories too
   private async syncCourts(courts: InsertCourt[]): Promise<Court[]> {
-    return await Promise.all(
+    this.logger.info({ count: courts.length }, "Syncing courts")
+
+    const result = await Promise.all(
       courts.map((court) => this.courtRepository.sync(court)),
     )
+
+    this.logger.info({ synced: result.length }, "Courts synced")
+
+    return result
   }
 
-  // TODO: same
   private async syncSubjects(subjects: InsertSubject[]): Promise<Subject[]> {
-    return await Promise.all(
+    this.logger.info({ count: subjects.length }, "Syncing subjects")
+
+    const result = await Promise.all(
       subjects.map((subject) => this.subjectRepository.sync(subject)),
     )
+
+    this.logger.info({ synced: result.length }, "Subjects synced")
+
+    return result
   }
 
   private async syncLegalEntity(party: JuditParty): Promise<LegalEntity> {
-    if (!party.document || party.document_type?.toLowerCase() !== "cnpj") {
+    const document = party.main_document?.replace(/\D/g, "")
+
+    this.logger.info({ name: party.name, document }, "Syncing legal entity")
+
+    if (!document || document.length !== 14) {
+      this.logger.error({ party }, "Invalid company document")
       throw new Error(
-        `Company party ${party.name} has invalid document: ${party.document} ${party.document_type}`,
+        `Company party ${party.name} has invalid document: ${party.main_document}`,
       )
     }
 
     const company = await this.legalEntityRepository.sync({
-      cnpj: party.document,
+      cnpj: document,
       corporateName: party.name,
     })
+
+    this.logger.info({ id: company.id }, "Legal entity synced")
 
     return company
   }
 
   private async syncPerson(party: JuditParty): Promise<Individual> {
-    if (!party.document || party.document_type?.toLowerCase() !== "cpf") {
+    const document = party.main_document?.replace(/\D/g, "")
+
+    this.logger.info({ name: party.name, document }, "Syncing individual")
+
+    if (!document || document.length !== 11) {
+      this.logger.error({ party }, "Invalid person document")
       throw new Error(
-        `Person party ${party.name} has invalid document: ${party.document} ${party.document_type}`,
+        `Person party ${party.name} has invalid document: ${party.main_document}`,
       )
     }
 
     const person = await this.individualRepository.sync({
-      cpf: party.document,
+      cpf: document,
       name: party.name,
     })
+
+    this.logger.info({ id: person.id }, "Individual synced")
 
     return person
   }
 
-  // TODO: this might be fine here, there is no real sync logic for the party model
   private async syncParty(
     lawsuitId: string,
     party: JuditParty,
-  ): Promise<Party> {
+  ): Promise<Party | null> {
+    this.logger.info({ lawsuitId, party: party.name }, "Syncing party")
+
+    let side: PartyRole
+
+    if (party.person_type?.toLocaleLowerCase() === "advogado") {
+      this.logger.warn({ party }, "Party is a lawyer, skipping sync for party")
+      return null // skip lawyers for now
+    }
+
+    if (party.side.toLocaleLowerCase() === "active") {
+      side = "author"
+    } else if (party.side.toLocaleLowerCase() === "passive") {
+      side = "defendant"
+    } else {
+      this.logger.error({ party }, "Unknown party side")
+      return null
+    }
+
     let entityId: string
     let entityType: EntityType
 
-    if (
-      party.entity_type?.toLowerCase() === "company" ||
-      party.document_type?.toLowerCase() === "cnpj"
-    ) {
+    const docLength = party.main_document?.replace(/\D/g, "").length ?? 0
+
+    if (docLength === 14 || party.entity_type?.toLowerCase() === "company") {
       entityType = "legal_entity"
     } else if (
-      party.entity_type?.toLowerCase() === "person" ||
-      party.document_type?.toLowerCase() === "cpf"
+      docLength === 11 ||
+      party.entity_type?.toLowerCase() === "person"
     ) {
       entityType = "individual"
     } else {
-      throw new Error(
-        `Unknown entity type (${party.entity_type}) and document type ${party.document_type} for party ${party.name}`,
+      this.logger.error(
+        { party },
+        "Unknown entity type and document type for party",
       )
+      return null
+      // throw new Error(
+      //   `Unknown entity type (${party.entity_type}) and document ${party.main_document} for party ${party.name}`,
+      // )
     }
 
     switch (entityType) {
@@ -135,36 +185,72 @@ export class JuditSyncService {
     const dbParty = await this.partyRepository.findByEntityId(entityId)
 
     if (dbParty) {
+      this.logger.info({ id: dbParty.id }, "Party already exists")
       return dbParty
     }
 
-    return await this.partyRepository.create({
+    const created = await this.partyRepository.create({
       entityId,
       type: entityType,
       lawsuitId: lawsuitId,
-      role: party.side === "Active" ? "author" : "defendant",
+      role: side,
     })
+
+    this.logger.info({ id: created.id }, "Party created")
+    return created
   }
 
   private async syncParties(
     lawsuitId: string,
     parties: JuditParty[],
-  ): Promise<Party[]> {
-    return await Promise.all(parties.map((p) => this.syncParty(lawsuitId, p)))
+  ): Promise<(Party | null)[]> {
+    this.logger.info({ count: parties.length }, "Syncing parties")
+
+    const result = await Promise.all(
+      parties.map((p) => this.syncParty(lawsuitId, p)),
+    )
+
+    this.logger.info({ synced: result.length }, "Parties synced")
+
+    return result
   }
 
   async syncLawsuitByCNJ(cnj: string) {
+    this.logger.info({ cnj }, "Starting lawsuit sync")
+
+    const dbLawsuit = await this.lawsuitRepository.findByCnj(cnj)
+
+    if (
+      dbLawsuit?.syncedAt &&
+      differenceInDays(dbLawsuit.syncedAt, new Date()) < 0
+    ) {
+      this.logger.info(
+        { cnj, syncedAt: dbLawsuit.syncedAt },
+        "Lawsuit already synced, skipping sync",
+      )
+      return {
+        lawsuitId: dbLawsuit.id,
+        fresh: false,
+        syncedAt: dbLawsuit.syncedAt,
+      }
+    }
+
     const juditResponse = await this.judit.searchLawsuitByCNJ(cnj)
 
     if (!juditResponse || !juditResponse.response_data) {
+      this.logger.error({ cnj }, "Judit API returned no data")
       throw new Error(`Lawsuit with CNJ ${cnj} not found in judit API`)
     }
 
+    this.logger.info({ cnj }, "Fetched data from Judit API")
+
     const tribunal = await this.tribunalRepository.sync({
       abbreviation: juditResponse.response_data.tribunal_acronym,
-      name: juditResponse.response_data.tribunal_acronym, // TODO: change this because judit does not return tribunal name
+      name: juditResponse.response_data.tribunal_acronym,
       area: "unknown",
     })
+
+    this.logger.info({ tribunalId: tribunal.id }, "Tribunal synced")
 
     const courts = await this.syncCourts(
       juditResponse.response_data.courts?.map((c) => ({
@@ -189,9 +275,12 @@ export class JuditSyncService {
       status: juditResponse.response_data.status,
       subjectsIds: subjects.map((s) => s.id),
       courtsIds: courts.map((c) => c.id),
+      syncedAt: new Date(),
     })
 
-    const parties: Party[] = await this.syncParties(
+    this.logger.info({ lawsuitId: lawsuit.id }, "Lawsuit synced")
+
+    const parties = await this.syncParties(
       lawsuit.id,
       juditResponse.response_data.parties ?? [],
     )
@@ -209,7 +298,10 @@ export class JuditSyncService {
       }) ?? [],
     )
 
-    // return this.lawsuitRepository.create({
-    // })
+    this.logger.info({ movements: movements.length }, "Movements processed")
+
+    this.logger.info({ lawsuitId: lawsuit.id }, "Finished lawsuit sync")
+
+    return { lawsuitId: lawsuit.id, fresh: true, syncedAt: lawsuit.syncedAt }
   }
 }

@@ -6,7 +6,16 @@ export const env = cleanEnv(process.env, {
     choices: ["development", "production", "test"],
     default: "development",
   }),
+
+  LOG_LEVEL: str({
+    choices: ["debug", "info", "warn", "error", "silent"],
+    default: "info",
+  }),
+  LOGGER_HOST: url(),
+
   DB_URL: url(),
+  REDIS_URL: url(),
+
   JUDICE_DB_URL: url(),
   JUDICE_API_URL: url(),
   JUDICE_API_TOKEN: str(),
@@ -14,6 +23,5 @@ export const env = cleanEnv(process.env, {
 
   JUDIT_REQUESTS_BASE_URL: url(),
   JUDIT_TRACKING_BASE_URL: url(),
-
-  REDIS_URL: url(),
+  JUDIT_API_KEY: str(),
 })

@@ -13,3 +13,5 @@ export * from "./party.ts"
 export * from "./subject.ts"
 export * from "./tribunal.ts"
 export * from "./witness.ts"
+
+export * from "./judit/index.ts"

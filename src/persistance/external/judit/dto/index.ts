@@ -113,7 +113,7 @@ const juditPartySchemaV2 = z.object({
   tags: z.record(z.string(), z.any()).optional(),
 })
 
-const juditPartySchema = juditPartySchemaV1
+const juditPartySchema = juditPartySchemaV2
 
 export type JuditParty = z.infer<typeof juditPartySchema>
 

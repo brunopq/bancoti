@@ -16,7 +16,7 @@ export const apiCalls = juditSchema.table("api_call", {
   endpoint: text().notNull(),
   method: text().notNull(),
   status: integer(),
-  request: jsonb().notNull(),
+  request: jsonb(),
   requestHeaders: jsonb().notNull(),
   response: jsonb(),
   responseHeaders: jsonb(),

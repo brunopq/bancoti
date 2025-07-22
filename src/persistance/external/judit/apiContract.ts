@@ -9,7 +9,7 @@ export const requestsRouter = c.router({
     method: "POST",
     body: dto.createRequestPayload,
     responses: {
-      200: dto.okCreateRequestResponse,
+      201: dto.okCreateRequestResponse,
     },
   },
 

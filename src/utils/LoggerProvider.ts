@@ -19,6 +19,10 @@ function createLoggerFactory(): (serviceName: string) => Logger {
           level: "info",
           options: {
             host: env.LOGGER_HOST,
+            basicAuth: {
+              username: env.LOGGER_USER,
+              password: env.LOGGER_PASS,
+            },
             labels: { app: "bancoti", enviroment: env.NODE_ENV },
             batching: true,
             interval: 5,

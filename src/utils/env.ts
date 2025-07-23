@@ -12,6 +12,8 @@ export const env = cleanEnv(process.env, {
     default: "info",
   }),
   LOGGER_HOST: url(),
+  LOGGER_USER: str(),
+  LOGGER_PASS: str(),
 
   DB_URL: url(),
   REDIS_URL: url(),

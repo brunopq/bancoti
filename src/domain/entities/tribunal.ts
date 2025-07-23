@@ -1,10 +1,8 @@
-import { z } from "zod"
+import type { LawsuitArea } from "./lawsuit.ts"
 
-export const TribunalSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  abbreviation: z.string(),
-  area: z.string(),
-})
-
-export type Tribunal = z.infer<typeof TribunalSchema>
+export type Tribunal = {
+  id: string
+  area: LawsuitArea
+  name: string
+  abbreviation: string
+}

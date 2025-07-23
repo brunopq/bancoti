@@ -60,6 +60,31 @@ export class LawsuitRepository implements IBaseRepository<Lawsuit, InsertLawsuit
     }
   }
 
+  async findByCnjDomain(
+    cnj: string,
+  ): Promise<DomainLawsuitWith<"movements"> | null> {
+    const lawsuit = await this.db.query.lawsuit.findFirst({
+      where: (l, { eq }) => eq(l.cnj, cnj),
+      with: { movements: true },
+    })
+
+    if (!lawsuit) return null
+
+    const subjects = await this.db
+      .select()
+      .from(subject)
+      .where(inArray(subject.id, lawsuit.subjectsIds))
+
+    return {
+      ...lawsuit,
+      movements: lawsuit.movements.map((m) => ({
+        ...m,
+        lawsuitId: lawsuit.id,
+      })),
+      subjects: subjects.map((s) => s.name),
+    }
+  }
+
   async findById(id: string) {
     const lawsuit = await this.db.query.lawsuit.findFirst({
       where: (l, { eq }) => eq(l.id, id),

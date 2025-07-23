@@ -1,9 +1,11 @@
-import { z } from "zod"
+import type { District } from "./district.ts"
 
-export const ForumSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  district: z.string(),
-})
+export type Forum = {
+  id: string
+  name: string
+  districtId: string
+}
 
-export type Forum = z.infer<typeof ForumSchema>
+export type ForumWithDistrict = Forum & {
+  district: District
+}

@@ -12,10 +12,6 @@ import type { Client } from "@/domain/entities/client.ts"
 export const clientController = new Hono()
 const clientService = container.get(ClientService)
 
-/**
- * GET /clients
- * List all clients
- */
 clientController.get(
   "/",
   describeRoute({
@@ -37,10 +33,6 @@ clientController.get(
   },
 )
 
-/**
- * GET /clients/search?cpf=... or /clients/search?cnpj=...
- * Search client by CPF or CNPJ
- */
 clientController.get(
   "/search",
   zValidator(
@@ -91,18 +83,12 @@ clientController.get(
       return c.json({ error: "cpf or cnpj required" }, 400)
     }
 
-    console.log(client)
-
     if (!client) return c.notFound()
 
     return c.json(client)
   },
 )
 
-/**
- * GET /clients/:id
- * Get a client by ID
- */
 clientController.get(
   "/:id",
   zValidator("param", z.object({ id: z.string() })),

@@ -1,11 +1,13 @@
 import "dotenv"
-import { cleanEnv, str, url } from "envalid"
+import { cleanEnv, num, str, url } from "envalid"
 
 export const env = cleanEnv(process.env, {
   NODE_ENV: str({
     choices: ["development", "production", "test"],
     default: "development",
   }),
+  PRODUCTION_URL: url(),
+  PORT: num({ default: 3000 }),
 
   LOG_LEVEL: str({
     choices: ["debug", "info", "warn", "error", "silent"],

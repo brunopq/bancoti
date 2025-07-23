@@ -1,8 +1,10 @@
 import { inject, injectable } from "inversify"
-import { eq } from "drizzle-orm"
+import { and, eq } from "drizzle-orm"
 import { party } from "../models/party.ts"
 import type { IBaseRepository } from "./IBaseRepository.ts"
 import type { Database } from "../db.ts"
+import { individual } from "../models/individual.ts"
+import { legalEntity } from "../models/legalEntity.ts"
 
 type Party = typeof party.$inferSelect
 type InsertParty = typeof party.$inferInsert
@@ -22,6 +24,21 @@ export class PartyRepository implements IBaseRepository<Party, InsertParty> {
       .from(party)
       .where(eq(party.entityId, entityId))
     return rows[0] ?? null
+  }
+
+  async findByLawsuitId(lawsuitId: string) {
+    return this.db
+      .select()
+      .from(party)
+      .where(eq(party.lawsuitId, lawsuitId))
+      .leftJoin(
+        individual,
+        and(eq(party.entityId, individual.id), eq(party.type, "individual")),
+      )
+      .leftJoin(
+        legalEntity,
+        and(eq(party.entityId, legalEntity.id), eq(party.type, "legal_entity")),
+      )
   }
 
   async findAll(): Promise<Party[]> {

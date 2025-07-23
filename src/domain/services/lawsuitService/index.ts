@@ -14,6 +14,8 @@ import type { PartyRole } from "@/domain/entities/party.ts"
 import { JuditSyncService } from "@/domain/services/juditSyncService.ts"
 import { MovementSyncService } from "@/domain/services/movementSyncService/index.ts"
 import { MovementService } from "@/domain/services/movementService/index.ts"
+import { CourtService } from "@/domain/services/courtService/index.ts"
+import { PartyService } from "@/domain/services/partyService/index.ts"
 
 type LawsuitFilters = {
   clientId?: string
@@ -27,6 +29,10 @@ export class LawsuitService {
     private readonly lawsuitRepository: LawsuitRepository,
     @inject(JuditSyncService)
     private readonly lawsuitSyncService: JuditSyncService,
+    @inject(CourtService)
+    private readonly courtService: CourtService,
+    @inject(PartyService)
+    private readonly partyService: PartyService,
     @inject(MovementSyncService)
     private readonly movementSyncService: MovementSyncService,
     @inject(MovementService)
@@ -57,25 +63,33 @@ export class LawsuitService {
     }
   }
 
-  async getByCnj(cnj: string): Promise<Lawsuit | LawsuitWith<"movements">> {
+  async getByCnj(
+    cnj: string,
+  ): Promise<LawsuitWith<"movements" | "courts" | "parties">> {
     let syncResult: Awaited<ReturnType<JuditSyncService["syncLawsuitByCNJ"]>>
 
     try {
       syncResult = await this.lawsuitSyncService.syncLawsuitByCNJ(cnj)
     } catch (error) {
       this.logger.error({ cnj, error }, "Failed to sync lawsuit with judit")
-
-      throw new Error(`Failed to sync lawsuit with CNJ "${cnj}": ${error}`)
+      // I mean, it's not the end of the world
     }
 
-    const lawsuit = await this.lawsuitRepository.findByIdDomain(
-      syncResult.lawsuitId,
-    )
+    const lawsuit = await this.lawsuitRepository.findByCnjDomain(cnj)
 
     if (!lawsuit) {
-      throw new NotFoundException(`Lawsuit with CNJ "${cnj}" not found.`)
+      throw new NotFoundException(
+        `Lawsuit with CNJ "${cnj}" not found in the database.`,
+      )
     }
 
-    return lawsuit
+    const courts = await this.courtService.findByIds(lawsuit.courtsIds)
+    const parties = await this.partyService.findForLawsuit(lawsuit.id)
+
+    return {
+      ...lawsuit,
+      courts,
+      parties,
+    }
   }
 }

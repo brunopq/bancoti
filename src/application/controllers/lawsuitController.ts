@@ -7,13 +7,16 @@ import { describeRoute } from "hono-openapi"
 import { container } from "@/dependencyManager.ts"
 
 import { LawsuitService } from "@/domain/services/lawsuitService/index.ts"
+import { PartyRoleSchema } from "@/domain/entities/party.ts"
+
 import {
   listLawsuitsResponse,
   findLawsuitByCNJResponse,
   type ListLawsuitsResponse,
+  completeLawsuitDTO,
+  type CompleteLawsuitDTO,
 } from "../dto/lawsuitDTO.ts"
 import { lawsuitMapper } from "../mappers/lawsuit.mapper.ts"
-import { PartyRoleSchema } from "@/domain/entities/party.ts"
 
 export const lawsuitController = new Hono()
 
@@ -103,7 +106,7 @@ lawsuitController.get(
       200: {
         description: "Successfull response",
         content: {
-          "application/json": { schema: resolver(findLawsuitByCNJResponse) },
+          "application/json": { schema: resolver(completeLawsuitDTO) },
         },
       },
     },
@@ -115,6 +118,19 @@ lawsuitController.get(
 
     const res = await lawsuitService.getByCnj(cnj)
 
-    return c.json(res)
+    const completeLawsuit: CompleteLawsuitDTO = {
+      ...res,
+      movements: res.movements.map((m) => ({
+        ...m,
+        createdAt: m.createdAt.toISOString(),
+        updatedAt: m.updatedAt.toISOString(),
+      })),
+      parties: res.parties.map((p) => ({
+        ...p,
+        side: p.role,
+      })),
+    }
+
+    return c.json(completeLawsuitDTO.parse(completeLawsuit))
   },
 )

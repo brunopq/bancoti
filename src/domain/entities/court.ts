@@ -1,13 +1,22 @@
-import { z } from "zod"
+import type { Forum } from "./forum.ts"
+import type { LawsuitArea } from "./lawsuit.ts"
+import type { Tribunal } from "./tribunal.ts"
 
-export const CourtSchema = z.object({
-  id: z.string(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-  name: z.string(),
-  area: z.string(),
-  forumId: z.string().optional(),
-  tribunalId: z.string().optional(),
-})
+export type Court = {
+  id: string
+  createdAt: Date
+  updatedAt: Date
+  area: LawsuitArea
+  name: string
+  forumId?: string | undefined
+  tribunalId?: string | undefined
+}
 
-export type Court = z.infer<typeof CourtSchema>
+export type CourtRelations = {
+  forum?: Forum
+  tribunal?: Tribunal
+}
+
+export type CourtWith<T extends keyof CourtRelations> = Court &
+  Pick<CourtRelations, T>
+

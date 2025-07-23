@@ -3,18 +3,19 @@ import { Hono } from "hono"
 import { showRoutes } from "hono/dev"
 import { logger } from "hono/logger"
 import { swaggerUI } from "@hono/swagger-ui"
-import { describeRoute, openAPISpecs } from "hono-openapi"
-import { resolver, validator } from "hono-openapi/zod"
-import { z } from "zod"
+import { openAPISpecs } from "hono-openapi"
 
-
-// import { judiceController } from "./application/controllers/judiceController.ts"
 import { clientController } from "./application/controllers/clientController.ts"
 import { lawsuitController } from "./application/controllers/lawsuitController.ts"
 import "./application/cron/index.ts"
+import { env } from "./utils/env.ts"
 
 const app = new Hono()
-app.use(logger())
+
+if (env.NODE_ENV === "development") {
+  app.use(logger())
+}
+
 app.get("/ui", swaggerUI({ url: "/openapi" }))
 
 app.get(
@@ -26,34 +27,21 @@ app.get(
         version: "0.0.1",
         description: "Banco de dados jurídico",
       },
-      servers: [{ url: "http://localhost:3000", description: "Local Server" }],
-    },
-  }),
-)
-
-app.get(
-  "/",
-  describeRoute({
-    description: "Root endpoint",
-    responses: {
-      200: {
-        description: "Successful response",
-        content: {
-          "text/plain": { schema: resolver(z.string()) },
-        },
+      components: {
+        // TODO: define schemas and responses here for better documentation
       },
+      servers: [
+        { url: `http://localhost:${env.PORT}`, description: "Local Server" },
+        { url: env.PRODUCTION_URL, description: "Production Server" },
+      ],
     },
   }),
-  (c) => {
-    return c.text("Hello Hono!")
-  },
 )
 
-// app.route("/judice", judiceController)
 app.route("/clients", clientController)
 app.route("/lawsuits", lawsuitController)
 
 showRoutes(app, { colorize: true })
-serve({ fetch: app.fetch, port: 3002 }, (info) => {
+serve({ fetch: app.fetch, port: env.PORT }, (info) => {
   console.log(`Server is running on http://localhost:${info.port} 🔥`)
 })

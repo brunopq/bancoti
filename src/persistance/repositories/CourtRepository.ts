@@ -1,5 +1,5 @@
 import { inject, injectable } from "inversify"
-import { and, eq } from "drizzle-orm"
+import { and, eq, inArray } from "drizzle-orm"
 import { court, type Court, type InsertCourt } from "../models/court.ts"
 import type { IBaseRepository } from "./IBaseRepository.ts"
 import type { Database } from "../db.ts"
@@ -11,6 +11,10 @@ export class CourtRepository implements IBaseRepository<Court, InsertCourt> {
   async findById(id: string): Promise<Court | null> {
     const rows = await this.db.select().from(court).where(eq(court.id, id))
     return rows[0] ?? null
+  }
+
+  async findByIds(ids: string[]): Promise<Court[]> {
+    return this.db.select().from(court).where(inArray(court.id, ids))
   }
 
   async findByName(name: string): Promise<Court | null> {

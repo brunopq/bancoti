@@ -8,6 +8,8 @@ export const env = cleanEnv(process.env, {
   }),
   PRODUCTION_URL: url(),
   PORT: num({ default: 3000 }),
+  API_TOKEN: str(),
+  API_VERSION: str({ devDefault: "just for fun" }),
 
   LOG_LEVEL: str({
     choices: ["debug", "info", "warn", "error", "silent"],

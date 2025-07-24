@@ -5,7 +5,10 @@ const prodDeps = ["node-cron", "pino", "pino-pretty", "pino-loki"]
 const start = Date.now()
 
 await build({
-  entrypoints: ["./src/index.ts"],
+  entrypoints: [
+    "./src/index.ts",
+    "./src/application/scripts/generateAPIToken.ts",
+  ],
   outdir: "./dist",
   format: "esm",
   minify: false,
@@ -15,6 +18,7 @@ await build({
 })
 
 await $`cp -r ./drizzle ./dist/drizzle`
+await $`mv ./dist/application/scripts ./dist/scripts`
 
 const pkgJson = await Bun.file("./package.json").json()
 
@@ -23,13 +27,10 @@ const prodPkgJson = {
   version: pkgJson.version,
   main: "index.js",
   type: "module",
-  dependencies: prodDeps.reduce(
-    (acc, dep) => {
-      acc[dep] = pkgJson.dependencies[dep]
-      return acc
-    },
-    {} as Record<string, string>,
-  ),
+  dependencies: prodDeps.reduce<Record<string, string>>((acc, dep) => {
+    acc[dep] = pkgJson.dependencies[dep]
+    return acc
+  }, {}),
 }
 
 await Bun.write("./dist/package.json", JSON.stringify(prodPkgJson, null, 2))

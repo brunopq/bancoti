@@ -17,6 +17,7 @@ clientController.get(
   describeRoute({
     tags: ["Client"],
     description: "List all clients",
+    security: [{ apiKey: [] }],
     responses: {
       200: {
         description: "Array of clients",
@@ -45,6 +46,7 @@ clientController.get(
   describeRoute({
     tags: ["Client"],
     description: "Search client by CPF or CNPJ",
+    security: [{ apiKey: [] }],
     parameters: [
       {
         name: "cpf",
@@ -95,6 +97,7 @@ clientController.get(
   describeRoute({
     tags: ["Client"],
     description: "Get a client by ID",
+    security: [{ apiKey: [] }],
     parameters: [
       {
         name: "id",

@@ -32,6 +32,7 @@ lawsuitController.get(
   describeRoute({
     description: "List all lawsuits",
     tags: ["Lawsuits"],
+    security: [{ apiKey: [] }],
     parameters: [
       {
         in: "query",
@@ -77,6 +78,7 @@ lawsuitController.get(
   describeRoute({
     description: "Get lawsuit by id",
     tags: ["Lawsuits"],
+    security: [{ apiKey: [] }],
     responses: {
       200: {
         description: "Successfull response",
@@ -102,6 +104,7 @@ lawsuitController.get(
   describeRoute({
     description: "Get lawsuit by cnj",
     tags: ["Lawsuits"],
+    security: [{ apiKey: [] }],
     responses: {
       200: {
         description: "Successfull response",

@@ -182,7 +182,10 @@ export class JuditSyncService {
         break
     }
 
-    const dbParty = await this.partyRepository.findByEntityId(entityId)
+    const dbParty = await this.partyRepository.findEntityForLawsuit({
+      entityId,
+      lawsuitId,
+    })
 
     if (dbParty) {
       this.logger.info({ id: dbParty.id }, "Party already exists")

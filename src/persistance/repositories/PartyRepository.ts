@@ -26,6 +26,20 @@ export class PartyRepository implements IBaseRepository<Party, InsertParty> {
     return rows[0] ?? null
   }
 
+  async findEntityForLawsuit({
+    entityId,
+    lawsuitId,
+  }: {
+    entityId: string
+    lawsuitId: string
+  }): Promise<Party | null> {
+    const rows = await this.db
+      .select()
+      .from(party)
+      .where(and(eq(party.entityId, entityId), eq(party.lawsuitId, lawsuitId)))
+    return rows[0] ?? null
+  }
+
   async findByLawsuitId(lawsuitId: string) {
     return this.db
       .select()

@@ -346,7 +346,17 @@ export class LawsuitRepository implements IBaseRepository<Lawsuit, InsertLawsuit
     const existing = await this.findByCnj(item.cnj)
 
     if (existing) {
-      return existing
+      // biome-ignore lint/style/noNonNullAssertion: <explanation>
+      return (await this.update(existing.id, {
+        _jid: item._jid || existing._jid,
+        area: item.area || existing.area,
+        cnj: item.cnj || existing.cnj,
+        instance: item.instance || existing.instance,
+        status: item.status || existing.status,
+        subjectsIds: item.subjectsIds || existing.subjectsIds,
+        courtsIds: item.courtsIds || existing.courtsIds,
+        syncedAt: item.syncedAt || existing.syncedAt,
+      }))!
     }
 
     return await this.create(item)

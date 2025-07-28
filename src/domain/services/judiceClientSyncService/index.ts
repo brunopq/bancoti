@@ -132,8 +132,15 @@ export class JudiceClientSyncService {
 
     syncLogger.info({ count: clients.length }, "Fetched clients from Judice")
 
-    await Promise.allSettled(
-      clients.map((c) => this.syncClientByJid(c.id, syncLogger)),
-    )
+    for (const c of clients) {
+      try {
+        await this.syncClientByJid(c.id, syncLogger)
+      } catch (error) {
+        syncLogger.error(
+          { jid: c.id, error },
+          "Failed to sync client from Judice",
+        )
+      }
+    }
   }
 }

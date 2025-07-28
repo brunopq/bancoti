@@ -111,7 +111,7 @@ export class JudiceLawsuitSyncService {
         throw new Error(`Unknown party role: ${party.posicao.nome}`)
     }
 
-    const createdParty = this.partyRepository.create({
+    const createdParty = await this.partyRepository.create({
       entityId: entity.id,
       type,
       lawsuitId,
@@ -170,10 +170,10 @@ export class JudiceLawsuitSyncService {
 
     const parties = await this.syncParties(dbLawsuit.id, lawsuit.partes)
     const clientParty = await this.syncParty(dbLawsuit.id, lawsuit.cliente)
-    const client = await this.clientRepository.create({
-      type: clientParty.type,
-      entityId: clientParty.entityId,
-    })
+    // const client = await this.clientRepository.create({
+    //   type: clientParty.type,
+    //   entityId: clientParty.entity.id,
+    // })
   }
 
   async sync() {
@@ -194,8 +194,18 @@ export class JudiceLawsuitSyncService {
 
     this.logger.info(`Found ${newLawsuits.length} new lawsuits to sync`)
 
-    await Promise.allSettled(
-      newLawsuits.map((lawsuit) => this.syncLawsuit(lawsuit)),
-    )
+    await new Promise((resolve) => setTimeout(resolve, 5000))
+
+    for (const lawsuit of newLawsuits) {
+      await new Promise((resolve) => setTimeout(resolve, 1500)) // Throttle to avoid hitting API limits
+      try {
+        await this.syncLawsuit(lawsuit)
+      } catch (error) {
+        this.logger.error(
+          { jid: lawsuit.id, cnj: lawsuit.numero, error },
+          `Failed to sync lawsuit: ${lawsuit.numero}`,
+        )
+      }
+    }
   }
 }

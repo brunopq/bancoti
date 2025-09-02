@@ -11,7 +11,10 @@ import { env } from "./utils/env.ts"
 import { clientController } from "./application/controllers/clientController.ts"
 import { lawsuitController } from "./application/controllers/lawsuitController.ts"
 import { makeAuthMiddleware } from "./application/middlewares/auth.middleware.ts"
+import { lawsuitQueryController } from "./application/controllers/lawsuitQueryController.ts"
+import { exampleController } from "./application/controllers/exampleController.ts" 
 import "./application/cron/index.ts"
+import "./application/consumers/index.ts"
 
 import { AuthService } from "./domain/services/authService/index.ts"
 import { resolver } from "hono-openapi/zod"
@@ -89,7 +92,9 @@ const authMiddleware = makeAuthMiddleware(authService)
 app.use(authMiddleware)
 
 app.route("/clients", clientController)
+app.route("/lawsuits/query", lawsuitQueryController)
 app.route("/lawsuits", lawsuitController)
+app.route("/example", exampleController)
 
 showRoutes(app, { colorize: true })
 serve({ fetch: app.fetch, port: env.PORT }, (info) => {

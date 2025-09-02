@@ -19,6 +19,8 @@ export const env = cleanEnv(process.env, {
   LOGGER_USER: str(),
   LOGGER_PASS: str(),
 
+  RABBITMQ_URL: url(),
+
   DB_URL: url(),
   REDIS_URL: url(),
 

@@ -15,6 +15,7 @@
     "@hono/swagger-ui": "^0.5.2",
     "@hono/zod-validator": "^0.7.0",
     "@ts-rest/core": "^3.52.1",
+    "amqplib": "^0.10.9",
     "date-fns": "^4.1.0",
     "dotenv": "^16.5.0",
     "drizzle-orm": "^0.44.2",
@@ -36,6 +37,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
+    "@types/amqplib": "^0.10.7",
     "@types/bun": "^1.2.15",
     "@types/node": "^20.11.17",
     "@types/pg": "^8.15.4",

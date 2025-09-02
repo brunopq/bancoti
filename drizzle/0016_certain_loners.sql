@@ -1,0 +1,1 @@
+ALTER TABLE "lawsuit_queries" ADD COLUMN "lawsuit_cnjs" text[] DEFAULT '{}' NOT NULL;

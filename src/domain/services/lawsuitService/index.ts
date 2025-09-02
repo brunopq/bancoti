@@ -63,6 +63,27 @@ export class LawsuitService {
     }
   }
 
+  async getByCnjNoSync(
+    cnj: string,
+  ): Promise<LawsuitWith<"movements" | "courts" | "parties">> {
+    const lawsuit = await this.lawsuitRepository.findByCnjDomain(cnj)
+
+    if (!lawsuit) {
+      throw new NotFoundException(
+        `Lawsuit with CNJ "${cnj}" not found in the database.`,
+      )
+    }
+
+    const courts = await this.courtService.findByIds(lawsuit.courtsIds)
+    const parties = await this.partyService.findForLawsuit(lawsuit.id)
+
+    return {
+      ...lawsuit,
+      courts,
+      parties,
+    }
+  }
+
   async getByCnj(
     cnj: string,
   ): Promise<LawsuitWith<"movements" | "courts" | "parties">> {

@@ -1,4 +1,5 @@
 import { inject, injectable } from "inversify"
+import { addMilliseconds, isAfter } from "date-fns"
 
 import { delay } from "@/utils/delay.ts"
 
@@ -6,6 +7,9 @@ import { JuditApiClient } from "./apiClient.ts"
 
 @injectable()
 export class JuditService {
+  private static readonly DEFAULT_POLLING_DELAY_MS = 5 * 1000 // 5 seconds
+  private static readonly DEFAULT_MAX_POLLING_TIME_MS = 30 * 60 * 1000 // 30 minutes
+
   constructor(@inject(JuditApiClient) private readonly api: JuditApiClient) {}
 
   async searchLawsuitByCNJ(cnj: string) {
@@ -26,18 +30,21 @@ export class JuditService {
     return res
   }
 
-  private async pollRequest(requestId: string, maxAttempts?: number) {
-    let attempt = 0
+  private async pollRequest(
+    requestId: string,
+    maxPollingTimeMs = JuditService.DEFAULT_MAX_POLLING_TIME_MS,
+    pollingDelayMs = JuditService.DEFAULT_POLLING_DELAY_MS,
+  ) {
+    const startTime = new Date()
+    const timeoutTime = addMilliseconds(startTime, maxPollingTimeMs)
 
-    while (maxAttempts === undefined || attempt < maxAttempts) {
-      await delay(1000)
-      attempt++
+    while (!isAfter(new Date(), timeoutTime)) {
+      await delay(pollingDelayMs)
 
       const response = await this.api.checkRequest({
         params: { requestId },
       })
 
-      // or should I throw?
       if (response.status !== 200) continue
 
       if (response.body.status === "completed") {
@@ -45,7 +52,7 @@ export class JuditService {
       }
     }
 
-    throw new Error("Timeout")
+    throw new Error(`Polling timeout after ${maxPollingTimeMs}ms`)
   }
 
   private async getResponse(requestId: string) {

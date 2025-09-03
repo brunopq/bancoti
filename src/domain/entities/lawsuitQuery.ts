@@ -7,6 +7,7 @@ export type LawsuitQueryStatus = (typeof lawsuitQueryStatuses)[number]
 export type LawsuitQueryOptions = {
   cnj?: string
   clientId?: string
+  movementsCount?: number
 }
 
 export type LawsuitQuery = {

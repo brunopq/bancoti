@@ -65,8 +65,9 @@ export class LawsuitService {
 
   async getByCnjNoSync(
     cnj: string,
+    options?: { movementsCount?: number },
   ): Promise<LawsuitWith<"movements" | "courts" | "parties">> {
-    const lawsuit = await this.lawsuitRepository.findByCnjDomain(cnj)
+    const lawsuit = await this.lawsuitRepository.findByCnjDomain(cnj, options)
 
     if (!lawsuit) {
       throw new NotFoundException(

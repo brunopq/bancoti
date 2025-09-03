@@ -10,7 +10,7 @@ import type {
   LawsuitWith as DomainLawsuitWith,
 } from "@/domain/entities/lawsuit.ts"
 
-import type { PartyRole } from "../models/enums.ts"
+import type { LawsuitInstance, PartyRole } from "../models/enums.ts"
 import { lawsuit, type Lawsuit, type InsertLawsuit } from "../models/lawsuit.ts"
 import { client } from "../models/client.ts"
 import { party } from "../models/party.ts"
@@ -62,10 +62,11 @@ export class LawsuitRepository implements IBaseRepository<Lawsuit, InsertLawsuit
 
   async findByCnjDomain(
     cnj: string,
+    options?: { movementsCount?: number },
   ): Promise<DomainLawsuitWith<"movements"> | null> {
     const lawsuit = await this.db.query.lawsuit.findFirst({
       where: (l, { eq }) => eq(l.cnj, cnj),
-      with: { movements: true },
+      with: { movements: { limit: options?.movementsCount } },
     })
 
     if (!lawsuit) return null

@@ -76,7 +76,9 @@ export class LawsuitQueryService {
 
     for (const cnj of query.lawsuitCnjs) {
       console.log(`Fetching lawsuit with CNJ ${cnj} for query ${queryId}`)
-      const lawsuit = await this.lawsuitService.getByCnjNoSync(cnj)
+      const lawsuit = await this.lawsuitService.getByCnjNoSync(cnj, {
+        movementsCount: options.movementsCount,
+      })
 
       if (lawsuit) {
         console.log(`Lawsuit with CNJ ${cnj} found for query ${queryId}`)

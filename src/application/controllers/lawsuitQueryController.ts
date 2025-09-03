@@ -43,27 +43,18 @@ lawsuitQueryController.post(
       },
     },
   }),
-  zValidator(
-    "json",
-    z.object({
-      cnj: z.string().optional(),
-      clientId: z.string().optional(),
-    }),
-  ),
+  zValidator("json", lawsuitQueryOptions),
   async (c) => {
-    const { cnj, clientId } = c.req.valid("json")
+    const options = c.req.valid("json")
 
-    if (!cnj && !clientId) {
+    if (!options.cnj && !options.clientId) {
       return c.json(
         { message: "At least one of 'cnj' or 'clientId' must be provided" },
         400,
       )
     }
 
-    const res = await lawsuitQueryService.createLawsuitQuery({
-      cnj,
-      clientId,
-    })
+    const res = await lawsuitQueryService.createLawsuitQuery(options)
 
     return c.json(
       createLawsuitQueryResponse.parse({
@@ -116,7 +107,21 @@ lawsuitQueryController.get(
         status: res.status,
         completedAt:
           "completedAt" in res ? res.completedAt.toISOString() : null,
-        result: "result" in res ? res.result : null,
+        result:
+          "result" in res
+            ? res.result.map((r) => ({
+                ...r,
+                parties: r.parties.map((p) => ({
+                  ...p,
+                  side: p.role,
+                })),
+                movements: r.movements.map((m) => ({
+                  ...m,
+                  createdAt: m.createdAt.toISOString(),
+                  updatedAt: m.updatedAt.toISOString(),
+                })),
+              }))
+            : null,
       } satisfies GetLawsuitQueryResponse),
     )
   },

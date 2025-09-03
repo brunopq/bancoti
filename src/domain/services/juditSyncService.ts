@@ -240,71 +240,85 @@ export class JuditSyncService {
 
     const juditResponse = await this.judit.searchLawsuitByCNJ(cnj)
 
-    if (!juditResponse || !juditResponse.response_data) {
+    if (juditResponse.length === 0) {
       this.logger.error({ cnj }, "Judit API returned no data")
       throw new Error(`Lawsuit with CNJ ${cnj} not found in judit API`)
     }
+    this.logger.info(
+      { cnj, count: juditResponse.length },
+      "Fetched data from Judit API",
+    )
 
-    this.logger.info({ cnj }, "Fetched data from Judit API")
+    const instances = juditResponse.reduce<Record<string, number>>(
+      (acc, { response_data }) => {
+        const code = response_data.code
+        acc[code] = Math.max(acc[code] || 1, response_data.instance ?? 1)
+        return acc
+      },
+      {},
+    )
 
-    const tribunal = await this.tribunalRepository.sync({
-      abbreviation: juditResponse.response_data.tribunal_acronym,
-      name: juditResponse.response_data.tribunal_acronym,
-      area: "unknown",
-    })
-
-    this.logger.info({ tribunalId: tribunal.id }, "Tribunal synced")
-
-    const courts = await this.syncCourts(
-      juditResponse.response_data.courts?.map((c) => ({
-        name: c.name,
+    return juditResponse.map(async ({ response_data }) => {
+      const tribunal = await this.tribunalRepository.sync({
+        abbreviation: response_data.tribunal_acronym,
+        name: response_data.tribunal_acronym,
         area: "unknown",
-        tribunalId: tribunal.id,
-      })) ?? [],
-    )
+      })
 
-    const subjects = await this.syncSubjects(
-      juditResponse.response_data.subjects?.map((s) => ({
-        name: s.name,
-      })) ?? [],
-    )
+      this.logger.info({ tribunalId: tribunal.id }, "Tribunal synced")
 
-    const lawsuit = await this.lawsuitRepository.sync({
-      cnj: juditResponse.response_data.code,
-      area: "unknown",
-      instance: juditLawsuitInstanceMapper.toModel(
-        juditResponse.response_data.instance,
-      ),
-      status: juditResponse.response_data.status,
-      subjectsIds: subjects.map((s) => s.id),
-      courtsIds: courts.map((c) => c.id),
-      syncedAt: new Date(),
-    })
+      const courts = await this.syncCourts(
+        response_data.courts?.map((c) => ({
+          name: c.name,
+          area: "unknown",
+          tribunalId: tribunal.id,
+        })) ?? [],
+      )
 
-    this.logger.info({ lawsuitId: lawsuit.id }, "Lawsuit synced")
+      const subjects = await this.syncSubjects(
+        response_data.subjects?.map((s) => ({
+          name: s.name,
+        })) ?? [],
+      )
 
-    const parties = await this.syncParties(
-      lawsuit.id,
-      juditResponse.response_data.parties ?? [],
-    )
+      const lawsuit = await this.lawsuitRepository.sync({
+        cnj: response_data.code,
+        area: "unknown",
+        instance: juditLawsuitInstanceMapper.toModel(
+          instances[response_data.code], // this should be defined
+        ),
+        status: response_data.status,
+        subjectsIds: subjects.map((s) => s.id),
+        courtsIds: courts.map((c) => c.id),
+        syncedAt: new Date(),
+      })
 
-    const movements = await Promise.allSettled(
-      juditResponse.response_data.steps?.map(async (m) => {
-        const dbMov = await this.movementRepository.create({
-          title: "Sem título", // TODO: change this because judit does not return movement title
-          type: "unknown", // TODO: change this because judit does not return movement type
-          description: m.content,
-          dispatchDate: new Date(m.step_date),
-          lawsuitId: lawsuit.id,
-          showClient: true, // default for judit is true, they are good
-        })
-      }) ?? [],
-    )
+      this.logger.info({ lawsuitId: lawsuit.id }, "Lawsuit synced")
 
-    this.logger.info({ movements: movements.length }, "Movements processed")
+      const parties = await this.syncParties(
+        lawsuit.id,
+        response_data.parties ?? [],
+      )
 
-    this.logger.info({ lawsuitId: lawsuit.id }, "Finished lawsuit sync")
+      const movements = await Promise.allSettled(
+        response_data.steps?.map(async (m) => {
+          const dbMov = await this.movementRepository.create({
+            title: "Sem título", // TODO: change this because judit does not return movement title
+            type: "unknown", // TODO: change this because judit does not return movement type
+            description: m.content,
+            dispatchDate: new Date(m.step_date),
+            lawsuitId: lawsuit.id,
+            showClient: true, // default for judit is true, they are good
+          })
+        }) ?? [],
+      )
 
-    return { lawsuitId: lawsuit.id, fresh: true, syncedAt: lawsuit.syncedAt }
+      this.logger.info({ movements: movements.length }, "Movements processed")
+
+      this.logger.info({ lawsuitId: lawsuit.id }, "Finished lawsuit sync")
+
+      return { lawsuitId: lawsuit.id, fresh: true, syncedAt: lawsuit.syncedAt }
+    }) 
+
   }
 }

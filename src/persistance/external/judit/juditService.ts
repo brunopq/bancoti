@@ -65,6 +65,6 @@ export class JuditService {
     if (res.status !== 200)
       throw new Error(`Failed to get the response for request id: ${requestId}`)
 
-    return res.body.page_data.at(0)
+    return res.body.page_data
   }
 }

@@ -1,7 +1,7 @@
 import { z } from "zod"
 
 export const companyDTO = z.object({
-  id: z.string(),
+  // id: z.string(),
   corporateName: z.string(),
   cnpj: z.string(),
 })

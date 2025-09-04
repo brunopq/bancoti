@@ -1,7 +1,7 @@
 import { z } from "zod"
 
 export const individualDTO = z.object({
-  id: z.string(),
+  // id: z.string(),
   name: z.string(),
   cpf: z.string(),
   email: z.string().optional(),

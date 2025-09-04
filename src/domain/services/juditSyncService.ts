@@ -225,11 +225,11 @@ export class JuditSyncService {
 
     if (
       dbLawsuit?.syncedAt &&
-      differenceInDays(dbLawsuit.syncedAt, new Date()) < 0
+      differenceInDays(new Date(), dbLawsuit.syncedAt) < 1
     ) {
       this.logger.info(
         { cnj, syncedAt: dbLawsuit.syncedAt },
-        "Lawsuit already synced, skipping sync",
+        "Lawsuit synced recently, skipping sync",
       )
       return {
         lawsuitId: dbLawsuit.id,

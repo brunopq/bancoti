@@ -6,7 +6,12 @@ import { zValidator } from "@hono/zod-validator"
 
 import { container } from "@/dependencyManager.ts"
 import { ClientService } from "@/domain/services/clientService/index.ts"
-import { ClientDTO, ClientDTOArray } from "../dto/clientDTO.ts"
+import {
+  ClientDTO,
+  ClientDTOArray,
+  type ClientDTOArrayType,
+  type ClientDTOType,
+} from "../dto/clientDTO.ts"
 import type { Client } from "@/domain/entities/client.ts"
 
 export const clientController = new Hono()
@@ -30,7 +35,17 @@ clientController.get(
   }),
   async (c) => {
     const clients = await clientService.getAllClients()
-    return c.json(clients)
+
+    return c.json(
+      ClientDTOArray.parse(
+        clients.map((c) => ({
+          ...(c.type === "individual"
+            ? { ...c.individual, type: "individual" }
+            : { ...c.company, type: "company" }),
+          id: c.id,
+        })) satisfies ClientDTOArrayType,
+      ),
+    )
   },
 )
 
@@ -87,7 +102,14 @@ clientController.get(
 
     if (!client) return c.notFound()
 
-    return c.json(client)
+    return c.json(
+      ClientDTO.parse({
+        ...(client.type === "individual"
+          ? { ...client.individual, type: "individual" }
+          : { ...client.company, type: "company" }),
+        id: client.id,
+      } satisfies ClientDTOType),
+    )
   },
 )
 
@@ -123,6 +145,13 @@ clientController.get(
 
     if (!client) return c.notFound()
 
-    return c.json(client)
+    return c.json(
+      ClientDTO.parse({
+        ...(client.type === "individual"
+          ? { ...client.individual, type: "individual" }
+          : { ...client.company, type: "company" }),
+        id: client.id,
+      } satisfies ClientDTOType),
+    )
   },
 )

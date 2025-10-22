@@ -4,6 +4,14 @@ Banco de dados de processos jurídicos
 ## Quickstart
 Para executar a aplicação localmente, certifique-se de ter o Bun, Node e Docker instalados em sua máquina.
 
+Primeiro, crie o arquivo .env
+
+```bash
+cp .env.example .env
+```
+
+Para subir a aplicação
+
 ```bash
 docker compose up -d
 bun install
